@@ -14,7 +14,30 @@ pub fn build(b: *std.Build) !void {
     try link("box2c", t, .{});
     const runStep = b.step("test", "Run tests");
     runStep.dependOn(&t.step);
-    // TODO: step to compile to a library (.a and .dll)
+
+    const staticLib = b.addStaticLibrary(.{
+        .name = "box2d",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    try link("box2c", staticLib, .{});
+    b.installArtifact(staticLib);
+    const staticLibArtifact = b.addInstallArtifact(staticLib, .{});
+    const staticLibStep = b.step("static", "Build a static library of box2d");
+    staticLibStep.dependOn(&staticLibArtifact.step);
+
+    const sharedLib = b.addSharedLibrary(.{
+        .name = "box2d",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    try link("box2c", sharedLib, .{});
+    b.installArtifact(sharedLib);
+    const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
+    const sharedLibStep = b.step("shared", "Build a shared library of box2d");
+    sharedLibStep.dependOn(&sharedLibArtifact.step);
 }
 
 pub const Box2dOptions = struct {};
@@ -29,13 +52,11 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
     // Thankfully, simde is entirely header files which makes this pretty easy
     try args.append("-I");
     try args.append(modulePath ++ "/extern/simde");
-    // args.append("-I");
-    // args.append(modulePath ++ "extern/simde/x86");
 
     // "Where did all the AVX2 stuff go?"
     // A: That is already handled by Zig's build system automatically.
 
-    // TODO: figure out how this works. It looks like it just generates an extra .h file and defines a macro, however I would like t make sure that's the only result.
+    // TODO: figure out how this works. It looks like it just generates an extra .h file and defines a macro, however I would like to make sure that's the only result.
     // option(BOX2D_USER_CONSTANTS "Generate user_constants.h" OFF)
     // if (BOX2D_USER_CONSTANTS)
     // 	set(BOX2D_LENGTH_UNIT_PER_METER "1.0" CACHE STRING "Length units per meter")
