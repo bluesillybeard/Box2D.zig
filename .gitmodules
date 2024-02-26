@@ -1,0 +1,3 @@
+[submodule "box2c"]
+	path = box2c
+	url = https://github.com/erincatto/box2c.git
