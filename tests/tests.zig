@@ -1,6 +1,6 @@
 const std = @import("std");
 const testing = std.testing;
-const box2d = @cImport(@cInclude("box2d/math.h"));
+const box2d = @cImport(@cInclude("box2d/math_functions.h"));
 
 // The only point of this test is to make sure Box2D is linked correctly.
 // It is essentially a copy of test/test_math.c

@@ -48,7 +48,7 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
     var args = try std.ArrayList([]const u8).initCapacity(c.root_module.owner.allocator, 8);
     try args.append("-I");
     try args.append(modulePath ++ "/include");
-    try args.append("-std=c17");
+    try args.append("-std=gnu17");
     // Thankfully, simde is entirely header files which makes this pretty easy
     try args.append("-I");
     try args.append(modulePath ++ "/extern/simde");
@@ -68,14 +68,13 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
     // 	target_compile_definitions(box2d PUBLIC BOX2D_USER_CONSTANTS)
     // endif()
     c.addCSourceFiles(.{
-        .files = &[_][]const u8{
+        .files = &[_][]const u8 {
             modulePath ++ "/src/aabb.c",
             modulePath ++ "/src/allocate.c",
             modulePath ++ "/src/array.c",
             modulePath ++ "/src/bitset.c",
-            // TODO: figure out what this does
-            //modulePath ++ "/src/bitset.inl",
             modulePath ++ "/src/block_allocator.c",
+            modulePath ++ "/src/block_array.c",
             modulePath ++ "/src/body.c",
             modulePath ++ "/src/broad_phase.c",
             modulePath ++ "/src/constraint_graph.c",
@@ -87,18 +86,19 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
             modulePath ++ "/src/dynamic_tree.c",
             modulePath ++ "/src/geometry.c",
             modulePath ++ "/src/hull.c",
+            modulePath ++ "/src/id_pool.c",
             modulePath ++ "/src/implementation.c",
             modulePath ++ "/src/island.c",
             modulePath ++ "/src/joint.c",
             modulePath ++ "/src/manifold.c",
-            modulePath ++ "/src/math.c",
+            modulePath ++ "/src/math_functions.c",
             modulePath ++ "/src/motor_joint.c",
             modulePath ++ "/src/mouse_joint.c",
-            modulePath ++ "/src/pool.c",
             modulePath ++ "/src/prismatic_joint.c",
             modulePath ++ "/src/revolute_joint.c",
             modulePath ++ "/src/shape.c",
             modulePath ++ "/src/solver.c",
+            modulePath ++ "/src/solver_set.c",
             modulePath ++ "/src/stack_allocator.c",
             modulePath ++ "/src/table.c",
             modulePath ++ "/src/timer.c",
@@ -110,4 +110,5 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
         .flags = try args.toOwnedSlice(),
     });
     c.addIncludePath(.{ .path = modulePath ++ "/include/" });
+    c.linkLibC();
 }
