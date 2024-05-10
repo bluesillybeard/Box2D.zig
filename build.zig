@@ -68,7 +68,7 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
     // 	target_compile_definitions(box2d PUBLIC BOX2D_USER_CONSTANTS)
     // endif()
     c.addCSourceFiles(.{
-        .files = &[_][]const u8 {
+        .files = &[_][]const u8{
             modulePath ++ "/src/aabb.c",
             modulePath ++ "/src/allocate.c",
             modulePath ++ "/src/array.c",
