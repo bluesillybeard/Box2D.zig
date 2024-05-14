@@ -9,7 +9,7 @@
     // - 3.201.0
     // - 3.202.0
     // - 3.300.0
-    .version = "3.000.0",
+    .version = "3.0.0", // For some reason, Zig does not like "3.000.0", so a single digit must be used.
     // This is the minimal set of files required to use as a dependency in a build.zig.zon. This is entirely untested!
     .paths = .{
         "box2c",
