@@ -1,0 +1,21 @@
+.{
+    .name = "box2d.zig",
+    // Version number is the same as Box2D, except the minor version is multiplied by 100.
+    // If there is a breaking change in the binding (not Box2D), it is incremented by one until the next Box2D version.
+    // This means "3.100.0" is the same version of Box2D as "3.101.0".
+    // This is a potential update sequence:
+    // - 3.100.0
+    // - 3.200.0
+    // - 3.201.0
+    // - 3.202.0
+    // - 3.300.0
+    .version = "3.000.0",
+    // This is the minimal set of files required to use as a dependency in a build.zig.zon. This is entirely untested!
+    .paths = .{
+        "box2c",
+        "src",
+        "build.zig",
+        "build.zig.zon",
+    },
+    .dependencies = .{},
+}
