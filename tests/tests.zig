@@ -1,9 +1,10 @@
 const std = @import("std");
 const testing = std.testing;
-const box2d = @cImport(@cInclude("box2d/math_functions.h"));
+const box2d = @import("box2d").native;
 
 // The only point of this test is to make sure Box2D is linked correctly.
 // It is essentially a copy of test/test_math.c
+// Box2D itself is well tested. Seeing as this binding is quite simple, I don't think it needs extensive unit testing beyond this.
 test "MathTest" {
     const zero = box2d.b2Vec2_zero;
     const one = box2d.b2Vec2{ .x = 1.0, .y = 1.0 };

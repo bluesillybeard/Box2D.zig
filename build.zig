@@ -4,6 +4,11 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const box2dModule = try addModule(b, "./", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     // test runner
     const t = b.addTest(.{
         .root_source_file = .{ .path = "tests/tests.zig" },
@@ -11,7 +16,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .link_libc = true,
     });
-    try link("box2c", t, .{});
+    t.root_module.addImport("box2d", box2dModule);
     const runStep = b.step("test", "Run tests");
     runStep.dependOn(&t.step);
 
@@ -21,8 +26,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .link_libc = true,
     });
-    try link("box2c", staticLib, .{});
-    b.installArtifact(staticLib);
+    staticLib.root_module.addImport("box2d", box2dModule);
     const staticLibArtifact = b.addInstallArtifact(staticLib, .{});
     const staticLibStep = b.step("static", "Build a static library of box2d");
     staticLibStep.dependOn(&staticLibArtifact.step);
@@ -33,28 +37,43 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .link_libc = true,
     });
-    try link("box2c", sharedLib, .{});
-    b.installArtifact(sharedLib);
+    sharedLib.root_module.addImport("box2d", box2dModule);
+
     const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
     const sharedLibStep = b.step("shared", "Build a shared library of box2d");
     sharedLibStep.dependOn(&sharedLibArtifact.step);
 }
 
-pub const Box2dOptions = struct {};
+pub const Box2dOptions = struct {
+    target: ?std.Build.ResolvedTarget = null,
+    optimize: ?std.builtin.OptimizeMode = null,
+};
 
-/// Links Box2D to a compile step
-pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options: Box2dOptions) !void {
+/// Adds the box2d module and returns it.
+pub fn addModule(b: *std.Build, comptime modulePath: []const u8, options: Box2dOptions) !*std.Build.Module {
+    const module = b.addModule("box2d", .{
+        .root_source_file = .{.path = modulePath ++ "src/box2d.zig"},
+        .target = options.target,
+        .optimize = options.optimize,
+    });
+    try link(modulePath, module, options);
+    return module;
+}
+
+/// Links Box2D to a module. I recomend using the box2d module option instead, as this only adds box2d's include directory and does not add the binding.
+/// This is primarily for internal use, it is only public to increase user options.
+pub fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOptions) !void {
     _ = options;
-    var args = try std.ArrayList([]const u8).initCapacity(c.root_module.owner.allocator, 8);
+    var args = try std.ArrayList([]const u8).initCapacity(c.owner.allocator, 8);
     try args.append("-I");
-    try args.append(modulePath ++ "/include");
+    try args.append(modulePath ++ "/box2c/include");
     try args.append("-std=gnu17");
     // Thankfully, simde is entirely header files which makes this pretty easy
     try args.append("-I");
-    try args.append(modulePath ++ "/extern/simde");
+    try args.append(modulePath ++ "/box2c/extern/simde");
 
     // "Where did all the AVX2 stuff go?"
-    // A: That is already handled by Zig's build system automatically.
+    // A: I believe that stuff is already handled by Zig's build system automatically. I may be wrong about that though.
 
     // TODO: figure out how this works. It looks like it just generates an extra .h file and defines a macro, however I would like to make sure that's the only result.
     // option(BOX2D_USER_CONSTANTS "Generate user_constants.h" OFF)
@@ -69,46 +88,46 @@ pub fn link(comptime modulePath: []const u8, c: *std.Build.Step.Compile, options
     // endif()
     c.addCSourceFiles(.{
         .files = &[_][]const u8{
-            modulePath ++ "/src/aabb.c",
-            modulePath ++ "/src/allocate.c",
-            modulePath ++ "/src/array.c",
-            modulePath ++ "/src/bitset.c",
-            modulePath ++ "/src/block_allocator.c",
-            modulePath ++ "/src/block_array.c",
-            modulePath ++ "/src/body.c",
-            modulePath ++ "/src/broad_phase.c",
-            modulePath ++ "/src/constraint_graph.c",
-            modulePath ++ "/src/contact.c",
-            modulePath ++ "/src/contact_solver.c",
-            modulePath ++ "/src/core.c",
-            modulePath ++ "/src/distance.c",
-            modulePath ++ "/src/distance_joint.c",
-            modulePath ++ "/src/dynamic_tree.c",
-            modulePath ++ "/src/geometry.c",
-            modulePath ++ "/src/hull.c",
-            modulePath ++ "/src/id_pool.c",
-            modulePath ++ "/src/implementation.c",
-            modulePath ++ "/src/island.c",
-            modulePath ++ "/src/joint.c",
-            modulePath ++ "/src/manifold.c",
-            modulePath ++ "/src/math_functions.c",
-            modulePath ++ "/src/motor_joint.c",
-            modulePath ++ "/src/mouse_joint.c",
-            modulePath ++ "/src/prismatic_joint.c",
-            modulePath ++ "/src/revolute_joint.c",
-            modulePath ++ "/src/shape.c",
-            modulePath ++ "/src/solver.c",
-            modulePath ++ "/src/solver_set.c",
-            modulePath ++ "/src/stack_allocator.c",
-            modulePath ++ "/src/table.c",
-            modulePath ++ "/src/timer.c",
-            modulePath ++ "/src/types.c",
-            modulePath ++ "/src/weld_joint.c",
-            modulePath ++ "/src/wheel_joint.c",
-            modulePath ++ "/src/world.c",
+            modulePath ++ "/box2c/src/aabb.c",
+            modulePath ++ "/box2c/src/allocate.c",
+            modulePath ++ "/box2c/src/array.c",
+            modulePath ++ "/box2c/src/bitset.c",
+            modulePath ++ "/box2c/src/block_allocator.c",
+            modulePath ++ "/box2c/src/block_array.c",
+            modulePath ++ "/box2c/src/body.c",
+            modulePath ++ "/box2c/src/broad_phase.c",
+            modulePath ++ "/box2c/src/constraint_graph.c",
+            modulePath ++ "/box2c/src/contact.c",
+            modulePath ++ "/box2c/src/contact_solver.c",
+            modulePath ++ "/box2c/src/core.c",
+            modulePath ++ "/box2c/src/distance.c",
+            modulePath ++ "/box2c/src/distance_joint.c",
+            modulePath ++ "/box2c/src/dynamic_tree.c",
+            modulePath ++ "/box2c/src/geometry.c",
+            modulePath ++ "/box2c/src/hull.c",
+            modulePath ++ "/box2c/src/id_pool.c",
+            modulePath ++ "/box2c/src/implementation.c",
+            modulePath ++ "/box2c/src/island.c",
+            modulePath ++ "/box2c/src/joint.c",
+            modulePath ++ "/box2c/src/manifold.c",
+            modulePath ++ "/box2c/src/math_functions.c",
+            modulePath ++ "/box2c/src/motor_joint.c",
+            modulePath ++ "/box2c/src/mouse_joint.c",
+            modulePath ++ "/box2c/src/prismatic_joint.c",
+            modulePath ++ "/box2c/src/revolute_joint.c",
+            modulePath ++ "/box2c/src/shape.c",
+            modulePath ++ "/box2c/src/solver.c",
+            modulePath ++ "/box2c/src/solver_set.c",
+            modulePath ++ "/box2c/src/stack_allocator.c",
+            modulePath ++ "/box2c/src/table.c",
+            modulePath ++ "/box2c/src/timer.c",
+            modulePath ++ "/box2c/src/types.c",
+            modulePath ++ "/box2c/src/weld_joint.c",
+            modulePath ++ "/box2c/src/wheel_joint.c",
+            modulePath ++ "/box2c/src/world.c",
         },
         .flags = try args.toOwnedSlice(),
     });
-    c.addIncludePath(.{ .path = modulePath ++ "/include/" });
-    c.linkLibC();
+    c.addIncludePath(.{ .path = modulePath ++ "/box2c/include/" });
+    c.link_libc = true;
 }
