@@ -42,6 +42,14 @@ pub fn build(b: *std.Build) !void {
     const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
     const sharedLibStep = b.step("shared", "Build a shared library of box2d");
     sharedLibStep.dependOn(&sharedLibArtifact.step);
+
+    // TODO: once ZLS fixes header directories not working correctly for modules, remove this garbage
+    // TODO: actually submit an issue to ZLS about this, since apparently nobody else has yet
+    {
+        const stupid = b.addStaticLibrary(.{ .root_source_file = .{ .path = "src/box2dnative.zig" }, .name = "stupid", .target = target, .optimize = optimize});
+        try link("./", &stupid.root_module, .{});
+        b.installArtifact(stupid);
+    }
 }
 
 pub const Box2dOptions = struct {

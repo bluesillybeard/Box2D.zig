@@ -29,3 +29,5 @@ This also probably works using Zig's package `build.zig.zon` thing, however I ha
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
 - Work on the actual binding
+    - Step one: re-declare all types and functions in box2d.zig
+    - Step two: zigify things (vague but hopefully clear enough)
