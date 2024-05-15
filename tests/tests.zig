@@ -6,7 +6,7 @@ const box2dnative = box2d.native;
 // This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
 fn refAllDeclsExceptNative(T: type) void {
     inline for (comptime std.meta.declarations(T)) |decl| {
-        if(!std.mem.eql(u8, decl.name, "native")){
+        if (!std.mem.eql(u8, decl.name, "native")) {
             _ = &@field(T, decl.name);
         }
     }

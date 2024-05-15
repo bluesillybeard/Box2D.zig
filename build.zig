@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) !void {
     // TODO: once ZLS fixes header directories not working correctly for modules, remove this garbage
     // TODO: actually submit an issue to ZLS about this, since apparently nobody else has yet
     {
-        const stupid = b.addStaticLibrary(.{ .root_source_file = .{ .path = "src/box2d.zig" }, .name = "stupid", .target = target, .optimize = optimize});
+        const stupid = b.addStaticLibrary(.{ .root_source_file = .{ .path = "src/box2d.zig" }, .name = "stupid", .target = target, .optimize = optimize });
         try link("./", &stupid.root_module, .{});
         b.installArtifact(stupid);
     }

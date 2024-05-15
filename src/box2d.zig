@@ -5,11 +5,11 @@ pub const native = @import("box2dnative.zig");
 // TODO: add function that just takes a Zig allocator object.
 // That may be quite dificult to do, seeing as the free function does not have a length argument while Zig allocators require that.
 
-pub const AllocFn = fn(size: c_uint, alignment: c_int) callconv(.C) *anyopaque;
+pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) *anyopaque;
 
-pub const FreeFn = fn(mem: *anyopaque) callconv(.C) void;
+pub const FreeFn = fn (mem: *anyopaque) callconv(.C) void;
 
-pub const AssertFn = fn(condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
+pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
 
 pub inline fn SetAllocator(alloc: *AllocFn, free: *FreeFn) void {
     native.b2SetAllocator(&alloc, &free);
@@ -46,7 +46,7 @@ pub const Profile = native.b2Profile;
 pub const Counters = native.b2Counters;
 pub const BodyDef = native.b2BodyDef;
 pub const BodyId = native.b2BodyId;
-pub const BodyType =  enum (c_uint) {
+pub const BodyType = enum(c_uint) {
     static = 0,
     kinematic = 1,
     dynamic = 2,
@@ -57,14 +57,14 @@ pub const JointId = native.b2JointId;
 pub const ContactData = native.b2ContactData;
 pub const ShapeDef = native.b2ShapeDef;
 pub const Segment = native.b2Segment;
-pub const ShapeType = enum (c_uint) {
+pub const ShapeType = enum(c_uint) {
     circle = 0,
-	capsule = 1,
-	segment = 2,
-	polygon = 3,
-	smoothSegment = 4,
+    capsule = 1,
+    segment = 2,
+    polygon = 3,
+    smoothSegment = 4,
     // Yeetis Beatis Bonkis Donkis
-	shapeTypeCount = 5,
+    shapeTypeCount = 5,
 };
 pub const Filter = native.b2Filter;
 pub const CastOutput = native.b2CastOutput;
@@ -157,7 +157,6 @@ pub inline fn worldPolygonCast(worldId: WorldId, polygon: Polygon, originTransfo
     native.b2World_PolygonCast(worldId, &polygon, originTransform, translation, filter, castFn, context);
 }
 
-// TODO: would it make sense to rename this to 'set' instead of 'enable'?
 pub inline fn worldEnableSleeping(worldId: WorldId, flag: bool) void {
     native.b2World_EnableSleeping(worldId, flag);
 }
@@ -193,9 +192,11 @@ pub inline fn worldGetGravity(worldId: WorldId) Vec2 {
 pub inline fn worldExplode(worldId: WorldId, position: Vec2, radius: f32, impulse: f32) void {
     native.b2World_Explode(worldId, position, radius, impulse);
 }
+
 pub inline fn worldSetContactTuning(worldId: WorldId, hertz: f32, dampingRatio: f32, pushVelocity: f32) void {
     native.b2World_SetContactTuning(worldId, hertz, dampingRatio, pushVelocity);
 }
+
 pub inline fn worldGetProfile(worldId: WorldId) Profile {
     return native.b2World_GetProfile(worldId);
 }
