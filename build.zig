@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) !void {
     // TODO: once ZLS fixes header directories not working correctly for modules, remove this garbage
     // TODO: actually submit an issue to ZLS about this, since apparently nobody else has yet
     {
-        const stupid = b.addStaticLibrary(.{ .root_source_file = .{ .path = "src/box2dnative.zig" }, .name = "stupid", .target = target, .optimize = optimize});
+        const stupid = b.addStaticLibrary(.{ .root_source_file = .{ .path = "src/box2d.zig" }, .name = "stupid", .target = target, .optimize = optimize});
         try link("./", &stupid.root_module, .{});
         b.installArtifact(stupid);
     }
@@ -68,9 +68,7 @@ pub fn addModule(b: *std.Build, comptime modulePath: []const u8, options: Box2dO
     return module;
 }
 
-/// Links Box2D to a module. I recomend using the box2d module option instead, as this only adds box2d's include directory and does not add the binding.
-/// This is primarily for internal use, it is only public to increase user options.
-pub fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOptions) !void {
+fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOptions) !void {
     _ = options;
     var args = try std.ArrayList([]const u8).initCapacity(c.owner.allocator, 8);
     try args.append("-I");

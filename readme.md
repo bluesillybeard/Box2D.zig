@@ -2,7 +2,9 @@
 
 Box2D v3 for the Zig programming language.
 
-It is tested on zig stable (currently 0.12.0) and master (0.13.0-dev.xyz). See the commit history for which version of zig master was last tested.
+Tested on zig stable (currently 0.12.0) and master (0.13.0-dev.xyz). See the commit history for which version of zig master was last tested. It also probably works with the Mach nominated version of Zig, however it is not explicitly tested with that.
+
+It's not too hard to @cImport Box2D's headers, but a binding is certainly nice. Plus integrating Cmake projects into Zig can be rather annoying.
 
 ## How to use
 
@@ -16,18 +18,30 @@ const box2d = @import('Box2D.zig/build.zig);
 
 ...
 
-const box2dModule = box2d.addModule("Box2D.zig", .{});
+// This calls b.addModule, with the name as "box2d" and uses the binding for the source file
+const box2dModule = box2d.addModule(b, "Box2D.zig", .{});
 exe.root_module.addImport("box2d", box2dModule);
 ```
 
-This also probably works using Zig's package `build.zig.zon` thing, however I have not tested it yet.
+This also probably works using Zigs package `build.zig.zon` thing, however I have not tested it yet.
 
 ## Other notes
 
+The binding does not significantly change the API. The biggest notable change is that things are slightly renamed to follow style guidlines:
+```
+b2WorldId -> WorldId
+b2CreateWorld() -> createWorld()
+b2World_IsValid() -> worldIsValid()
+```
 
+Eventually, the binding will sort everything into namespace structs and use the "OOP-like" syntax (`b2World_IsValid(world)` -> `world.isValid()`)
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
 - Work on the actual binding
-    - Step one: re-declare all types and functions in box2d.zig
-    - Step two: zigify things (vague but hopefully clear enough)
+    - translate all structs by hand
+        - Add comptime asserts to throw an error when the native struct changes so ABI issues don't happen
+    - convert functions like `worldIsValid` to use the Zig "OOP-like" syntax: `world.isValid`
+    - add generics and stuff where reasonable
+        - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
+    - Copy and tweak inline documentation from Box2D
