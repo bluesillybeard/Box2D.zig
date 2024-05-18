@@ -60,7 +60,7 @@ pub const Box2dOptions = struct {
 /// Adds the box2d module and returns it.
 pub fn addModule(b: *std.Build, comptime modulePath: []const u8, options: Box2dOptions) !*std.Build.Module {
     const module = b.addModule("box2d", .{
-        .root_source_file = .{ .path = modulePath ++ "src/box2d.zig" },
+        .root_source_file = .{ .path = modulePath ++ "/src/box2d.zig" },
         .target = options.target,
         .optimize = options.optimize,
     });

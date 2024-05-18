@@ -3,7 +3,7 @@ const std = @import("std");
 pub const native = @import("box2dnative.zig");
 
 // TODO: add function that just takes a Zig allocator object.
-// That may be quite dificult to do, seeing as the free function does not have a length argument while Zig allocators require that.
+// The free function does not have a length argument while Zig allocators require that. I can probably just add a usize worth of extra bytes per allocation to store the length.
 
 pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) *anyopaque;
 
@@ -88,9 +88,22 @@ pub const JointType = enum(c_uint) {
     wheel,
 };
 pub const Color = native.b2Color;
+pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
+pub const DistanceCache = native.b2DistanceCache;
+pub const DistanceInput = native.b2DistanceInput;
+pub const DistanceOutput = native.b2DistanceOutput;
+pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
+pub const DistanceProxy = native.b2DistanceProxy;
+pub const Sweep = native.b2Sweep;
+pub const DynamicTree = native.b2DynamicTree;
+pub const RayCastInput = native.b2RayCastInput;
+pub const ShapeCastInput = native.b2ShapeCastInput;
+pub const Hull = native.b2Hull;
+pub const Timer = native.b2Timer;
+pub const Mat22 = native.b2Mat22;
 
-pub inline fn createWorld(def: *const WorldDef) WorldId {
-    return native.b2CreateWorld(def);
+pub inline fn createWorld(def: WorldDef) WorldId {
+    return native.b2CreateWorld(&def);
 }
 
 pub inline fn cestroyWorld(worldId: WorldId) void {
@@ -1158,7 +1171,7 @@ pub inline fn weldJointGetAngularDampingRatio(jointId: JointId) f32 {
 }
 
 // TODO: color hex code enum (well, in Zig an enum would be a bad choice, but you get the idea)
-// These functions were actually translated by zig translate-c, however I did some manual modifications afterwards
+// TODO: apparently these color functions are going to be removed.
 
 pub inline fn makeColor(hexCode: u32) Color {
     var color: Color = undefined;
@@ -1175,4 +1188,495 @@ pub inline fn makeColorAlpha(hexCode: u32, alpha: f32) Color {
     color.b = @as(f32, @floatFromInt(hexCode & 255)) / 255.0;
     color.a = alpha;
     return color;
+}
+
+pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDistanceResult {
+    return native.b2SegmentDistance(p1, q1, p2, q2);
+}
+
+pub inline fn shapeDistance(cache: *DistanceCache, input: DistanceInput) DistanceOutput {
+    return native.b2ShapeDistance(cache, &input);
+}
+
+pub inline fn shapeCast(input: ShapeCastPairInput) CastOutput {
+    return native.b2ShapeCast(&input);
+}
+
+pub inline fn makeProxy(vertices: []const Vec2, radius: f32) DistanceProxy {
+    return native.b2MakeProxy(vertices.ptr, @intCast(vertices.len), radius);
+}
+
+pub inline fn getSweepTransform(sweep: Sweep, time: f32) Transform {
+    return native.b2GetSweepTransform(&sweep, time);
+}
+
+pub inline fn dynamicTreeCreate() DynamicTree {
+    return native.b2DynamicTree_Create();
+}
+
+pub inline fn dynamicTreeDestroy(tree: *DynamicTree) void {
+    native.b2DynamicTree_Destroy(tree);
+}
+
+pub inline fn dynamicTreeCreateProxy(tree: *DynamicTree, aabb: AABB, categoryBits: u32, userData: i32) i32 {
+    return native.b2DynamicTree_CreateProxy(tree, aabb, categoryBits, userData);
+}
+
+pub inline fn dynamicTreeDestroyProxy(tree: *DynamicTree, proxyId: i32) void {
+    native.b2DynamicTree_DestroyProxy(tree, proxyId);
+}
+
+pub inline fn dynamicTreeClone(outTree: *DynamicTree, inTree: DynamicTree) void {
+    native.b2DynamicTree_Clone(outTree, &inTree);
+}
+
+pub inline fn dynamicTreeMoveProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
+    native.b2DynamicTree_MoveProxy(tree, proxyId, aabb);
+}
+
+pub inline fn dynamicTreeEnlargeProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
+    native.b2DynamicTree_EnlargeProxy(tree, proxyId, aabb);
+}
+
+pub const b2TreeQueryCallbackFcn = fn (proxyId: i32, userData: i32, context: ?*anyopaque) callconv(.C) bool;
+
+pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const b2TreeQueryCallbackFcn, context: ?*anyopaque) void {
+    native.b2DynamicTree_QueryFiltered(&tree, aabb, maskBits, callback, context);
+}
+
+pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const b2TreeQueryCallbackFcn, context: ?*anyopaque) void {
+    native.b2DynamicTree_Query(&tree, aabb, callback, context);
+}
+
+pub const b2TreeRayCastCallbackFcn = fn (*const RayCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
+
+pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const b2TreeRayCastCallbackFcn, context: ?*anyopaque) void {
+    native.b2DynamicTree_RayCast(&tree, &input, maskBits, callback, context);
+}
+
+pub const b2TreeShapeCastCallbackFcn = fn (*const ShapeCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
+
+pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const b2TreeShapeCastCallbackFcn, context: ?*anyopaque) void {
+    native.b2DynamicTree_ShapeCast(&tree, &input, maskBits, callback, context);
+}
+
+pub inline fn dynamicTreeValidate(tree: DynamicTree) void {
+    native.b2DynamicTree_Validate(&tree);
+}
+
+pub inline fn dynamicTreeGetHeight(tree: DynamicTree) i32 {
+    return native.b2DynamicTree_GetHeight(&tree);
+}
+
+pub inline fn dynamicTreeGetMaxBalance(tree: DynamicTree) i32 {
+    return native.b2DynamicTree_GetMaxBalance(&tree);
+}
+
+pub inline fn dynamicTreeGetAreaRatio(tree: DynamicTree) f32 {
+    return native.b2DynamicTree_GetAreaRatio(&tree);
+}
+
+pub inline fn dynamicTreeRebuildBottomUp(tree: *DynamicTree) void {
+    native.b2DynamicTree_RebuildBottomUp(tree);
+}
+
+pub inline fn dynamicTreeGetProxyCount(tree: DynamicTree) i32 {
+    return native.b2DynamicTree_GetProxyCount(&tree);
+}
+
+pub inline fn dynamicTreeRebuild(tree: *DynamicTree, fullBuild: bool) i32 {
+    return native.b2DynamicTree_Rebuild(tree, fullBuild);
+}
+
+pub inline fn dynamicTreeShiftOrigin(tree: *DynamicTree, newOrigin: Vec2) void {
+    native.b2DynamicTree_ShiftOrigin(tree, newOrigin);
+}
+
+pub inline fn dynamicTreeGetByteCount(tree: DynamicTree) c_int {
+    // TODO is there a const cast error here?
+    return native.b2DynamicTree_GetByteCount(&tree);
+}
+
+pub inline fn dynamicTreeGetUserData(tree: DynamicTree, proxyId: i32) i32 {
+    return tree.nodes[proxyId].userData;
+}
+
+pub inline fn dynamicTreeGetAABB(tree: DynamicTree, proxyId: i32) AABB {
+    return tree.nodes[proxyId].aabb;
+}
+
+pub inline fn computeHull(points: []const Vec2) Hull {
+    return native.b2ComputeHull(points.ptr, @intCast(points.len));
+}
+
+pub inline fn validateHull(hull: Hull) bool {
+    return native.b2ValidateHull(&hull);
+}
+
+// TODO: for the following few functions, translate properly
+pub inline fn dot(a: Vec2, b: Vec2) f32 {
+    return (a.x * b.x) + (a.y * b.y);
+}
+pub inline fn cross(a: Vec2, b: Vec2) f32 {
+    return (a.x * b.y) - (a.y * b.x);
+}
+pub inline fn crossVS(v: Vec2, s: f32) Vec2 {
+    return Vec2{
+        .x = s * v.y,
+        .y = -s * v.x,
+    };
+}
+pub inline fn crossSV(s: f32, v: Vec2) Vec2 {
+    return Vec2{
+        .x = -s * v.y,
+        .y = s * v.x,
+    };
+}
+pub inline fn leftPerp(v: Vec2) Vec2 {
+    return Vec2{
+        .x = -v.y,
+        .y = v.x,
+    };
+}
+pub inline fn rightPerp(v: Vec2) Vec2 {
+    return Vec2{
+        .x = v.y,
+        .y = -v.x,
+    };
+}
+pub inline fn add(a: Vec2, b: Vec2) Vec2 {
+    return Vec2{
+        .x = a.x + b.x,
+        .y = a.y + b.y,
+    };
+}
+pub inline fn sub(a: Vec2, b: Vec2) Vec2 {
+    return Vec2{
+        .x = a.x - b.x,
+        .y = a.y - b.y,
+    };
+}
+pub inline fn neg(a: Vec2) Vec2 {
+    return Vec2{
+        .x = -a.x,
+        .y = -a.y,
+    };
+}
+pub inline fn lerp(a: Vec2, b: Vec2, t: f32) Vec2 {
+    return Vec2{
+        .x = ((1.0 - t) * a.x) + (t * b.x),
+        .y = ((1.0 - t) * a.y) + (t * b.y),
+    };
+}
+pub inline fn mul(a: Vec2, b: Vec2) Vec2 {
+    return Vec2{
+        .x = a.x * b.x,
+        .y = a.y * b.y,
+    };
+}
+pub inline fn mulSV(s: f32, v: Vec2) Vec2 {
+    return Vec2{
+        .x = s * v.x,
+        .y = s * v.y,
+    };
+}
+pub inline fn mulAdd(a: Vec2, s: f32, b: Vec2) Vec2 {
+    return Vec2{
+        .x = a.x + (s * b.x),
+        .y = a.y + (s * b.y),
+    };
+}
+pub inline fn mulSub(a: Vec2, s: f32, b: Vec2) Vec2 {
+    return Vec2{
+        .x = a.x - (s * b.x),
+        .y = a.y - (s * b.y),
+    };
+}
+pub inline fn abs(a: Vec2) Vec2 {
+    var b: Vec2 = undefined;
+    b.x = @abs(a.x);
+    b.y = @abs(a.y);
+    return b;
+}
+pub inline fn min(a: Vec2, b: Vec2) Vec2 {
+    var c: Vec2 = undefined;
+    c.x = @min(a.x, b.x);
+    c.y = @min(a.y, b.y);
+    return c;
+}
+pub inline fn max(a: Vec2, b: Vec2) Vec2 {
+    var c: Vec2 = undefined;
+    c.x = @max(a.x, b.x);
+    c.y = @max(a.y, b.y);
+    return c;
+}
+pub inline fn clamp(v: Vec2, lower: Vec2, upper: Vec2) Vec2 {
+    var c: Vec2 = undefined;
+    c.x = std.math.clamp(v.x, lower.x, upper.x);
+    c.y = std.math.clamp(v.y, lower.y, upper.y);
+    return c;
+}
+pub inline fn vec2Length(v: Vec2) f32 {
+    return @sqrt((v.x * v.x) + (v.y * v.y));
+}
+pub inline fn lengthSquared(v: Vec2) f32 {
+    return (v.x * v.x) + (v.y * v.y);
+}
+pub inline fn distance(a: Vec2, b: Vec2) f32 {
+    const dx: f32 = b.x - a.x;
+    const dy: f32 = b.y - a.y;
+    return @sqrt((dx * dx) + (dy * dy));
+}
+pub inline fn distanceSquared(a: Vec2, b: Vec2) f32 {
+    const c: Vec2 = Vec2{
+        .x = b.x - a.x,
+        .y = b.y - a.y,
+    };
+    return (c.x * c.x) + (c.y * c.y);
+}
+pub inline fn makeRot(angle: f32) Rot {
+    const q: Rot = Rot{
+        .c = @cos(angle),
+        .s = @sin(angle),
+    };
+    return q;
+}
+pub inline fn normalizeRot(q: Rot) Rot {
+    const mag: f32 = @sqrt((q.s * q.s) + (q.c * q.c));
+    const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
+    const qn: Rot = Rot{
+        .c = q.c * invMag,
+        .s = q.s * invMag,
+    };
+    return qn;
+}
+pub inline fn isNormalized(q: Rot) bool {
+    const qq: f32 = (q.s * q.s) + (q.c * q.c);
+    return ((1.0 - 0.0006000000284984708) < qq) and (qq < (1.0 + 0.0006000000284984708));
+}
+pub inline fn nLerp(q1: Rot, q2: Rot, t: f32) Rot {
+    const omt: f32 = 1.0 - t;
+    const q: Rot = Rot{
+        .c = (omt * q1.c) + (t * q2.c),
+        .s = (omt * q1.s) + (t * q2.s),
+    };
+    return normalizeRot(q);
+}
+pub inline fn integrateRotation(q1: Rot, deltaAngle: f32) Rot {
+    const q2: Rot = Rot{
+        .c = q1.c - (deltaAngle * q1.s),
+        .s = q1.s + (deltaAngle * q1.c),
+    };
+    const mag: f32 = @sqrt((q2.s * q2.s) + (q2.c * q2.c));
+    const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
+    const qn: Rot = Rot{
+        .c = q2.c * invMag,
+        .s = q2.s * invMag,
+    };
+    return qn;
+}
+pub inline fn computeAngularVelocity(q1: Rot, q2: Rot, inv_h: f32) f32 {
+    const omega: f32 = inv_h * ((q2.s * q1.c) - (q2.c * q1.s));
+    return omega;
+}
+pub inline fn rotGetAngle(q: Rot) f32 {
+    // TODO: verify Y and X weren't accudentally swapped
+    return std.math.atan2(q.s, q.c);
+}
+pub inline fn rotGetXAxis(q: Rot) Vec2 {
+    const v: Vec2 = Vec2{
+        .x = q.c,
+        .y = q.s,
+    };
+    return v;
+}
+pub inline fn rotGetYAxis(q: Rot) Vec2 {
+    const v: Vec2 = Vec2{
+        .x = -q.s,
+        .y = q.c,
+    };
+    return v;
+}
+pub inline fn mulRot(q: Rot, r: Rot) Rot {
+    var qr: Rot = undefined;
+    qr.s = (q.s * r.c) + (q.c * r.s);
+    qr.c = (q.c * r.c) - (q.s * r.s);
+    return qr;
+}
+pub inline fn invMulRot(q: Rot, r: Rot) Rot {
+    var qr: Rot = undefined;
+    qr.s = (q.c * r.s) - (q.s * r.c);
+    qr.c = (q.c * r.c) + (q.s * r.s);
+    return qr;
+}
+pub inline fn relativeAngle(b: Rot, a: Rot) f32 {
+    const s: f32 = (b.s * a.c) - (b.c * a.s);
+    const c: f32 = (b.c * a.c) + (b.s * a.s);
+    return std.math.atan2(s, c);
+}
+pub inline fn unwindAngle(angle: f32) f32 {
+    if (angle < -3.1415927410125732) {
+        return angle + (2.0 * 3.1415927410125732);
+    } else if (angle > 3.1415927410125732) {
+        return angle - (2.0 * 3.1415927410125732);
+    }
+    return angle;
+}
+pub inline fn rotateVector(q: Rot, v: Vec2) Vec2 {
+    return Vec2{
+        .x = (q.c * v.x) - (q.s * v.y),
+        .y = (q.s * v.x) + (q.c * v.y),
+    };
+}
+pub inline fn invRotateVector(q: Rot, v: Vec2) Vec2 {
+    return Vec2{
+        .x = (q.c * v.x) + (q.s * v.y),
+        .y = (-q.s * v.x) + (q.c * v.y),
+    };
+}
+pub inline fn transformPoint(xf: Transform, p: Vec2) Vec2 {
+    const x: f32 = ((xf.q.c * p.x) - (xf.q.s * p.y)) + xf.p.x;
+    const y: f32 = ((xf.q.s * p.x) + (xf.q.c * p.y)) + xf.p.y;
+    return Vec2{
+        .x = x,
+        .y = y,
+    };
+}
+pub inline fn invTransformPoint(xf: Transform, p: Vec2) Vec2 {
+    const vx: f32 = p.x - xf.p.x;
+    const vy: f32 = p.y - xf.p.y;
+    return Vec2{
+        .x = (xf.q.c * vx) + (xf.q.s * vy),
+        .y = (-xf.q.s * vx) + (xf.q.c * vy),
+    };
+}
+pub inline fn mulTransforms(A: Transform, B: Transform) Transform {
+    var C: Transform = undefined;
+    C.q = mulRot(A.q, B.q);
+    C.p = add(rotateVector(A.q, B.p), A.p);
+    return C;
+}
+pub inline fn invMulTransforms(A: Transform, B: Transform) Transform {
+    var C: Transform = undefined;
+    C.q = invMulRot(A.q, B.q);
+    C.p = invRotateVector(A.q, sub(B.p, A.p));
+    return C;
+}
+pub inline fn mulMV(A: Mat22, v: Vec2) Vec2 {
+    const u: Vec2 = Vec2{
+        .x = (A.cx.x * v.x) + (A.cy.x * v.y),
+        .y = (A.cx.y * v.x) + (A.cy.y * v.y),
+    };
+    return u;
+}
+pub inline fn getInverse22(A: Mat22) Mat22 {
+    const a: f32 = A.cx.x;
+    const b: f32 = A.cy.x;
+    const c: f32 = A.cx.y;
+    const d: f32 = A.cy.y;
+    const det: f32 = (a * d) - (b * c);
+    if (det != 0.0) {
+        det = 1.0 / det;
+    }
+    const B: Mat22 = Mat22{
+        .cx = Vec2{
+            .x = det * d,
+            .y = -det * c,
+        },
+        .cy = Vec2{
+            .x = -det * b,
+            .y = det * a,
+        },
+    };
+    return B;
+}
+pub inline fn solve22(A: Mat22, b: Vec2) Vec2 {
+    const a11: f32 = A.cx.x;
+    const a12: f32 = A.cy.x;
+    const a21: f32 = A.cx.y;
+    const a22: f32 = A.cy.y;
+    const det: f32 = (a11 * a22) - (a12 * a21);
+    _ = &det;
+    if (det != 0.0) {
+        det = 1.0 / det;
+    }
+    const x: Vec2 = Vec2{
+        .x = det * ((a22 * b.x) - (a12 * b.y)),
+        .y = det * ((a11 * b.y) - (a21 * b.x)),
+    };
+    return x;
+}
+pub inline fn AABBContains(a: AABB, b: AABB) bool {
+    var s: bool = @as(c_int, 1) != 0;
+    s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.x <= b.lowerBound.x);
+    s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.y <= b.lowerBound.y);
+    s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.x <= a.upperBound.x);
+    s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.y <= a.upperBound.y);
+    return s;
+}
+pub inline fn AABBCenter(a: AABB) Vec2 {
+    const b: Vec2 = Vec2{
+        .x = 0.5 * (a.lowerBound.x + a.upperBound.x),
+        .y = 0.5 * (a.lowerBound.y + a.upperBound.y),
+    };
+    return b;
+}
+pub inline fn AABB_Extents(a: AABB) Vec2 {
+    const b: Vec2 = Vec2{
+        .x = 0.5 * (a.upperBound.x - a.lowerBound.x),
+        .y = 0.5 * (a.upperBound.y - a.lowerBound.y),
+    };
+    return b;
+}
+pub inline fn AABB_Union(a: AABB, b: AABB) AABB {
+    var c: AABB = undefined;
+    c.lowerBound.x = @min(a.lowerBound.x, b.lowerBound.x);
+    c.lowerBound.y = @min(a.lowerBound.y, b.lowerBound.y);
+    c.upperBound.x = @max(a.upperBound.x, b.upperBound.x);
+    c.upperBound.y = @max(a.upperBound.y, b.upperBound.y);
+    return c;
+}
+
+pub inline fn vec2IsValid(v: Vec2) bool {
+    return native.b2Vec2_IsValid(v);
+}
+
+pub inline fn rotIsValid(q: Rot) bool {
+    return native.b2Rot_IsValid(q);
+}
+
+pub inline fn AABB_IsValid(aabb: AABB) bool {
+    return native.b2AABB_IsValid(aabb);
+}
+
+pub inline fn normalize(v: Vec2) Vec2 {
+    return native.b2Normalize(v);
+}
+
+pub inline fn normalizeChecked(v: Vec2) Vec2 {
+    return native.b2NormalizeChecked(v);
+}
+
+pub inline fn getLengthAndNormalize(length: *f32, v: Vec2) Vec2 {
+    return native.b2GetLengthAndNormalize(length, v);
+}
+// TODO: Do we need these functions? Check if the Zig standard library has suitable equivalents and Timer isn't used elsewhere.
+pub inline fn createTimer() Timer {
+    return native.b2CreateTimer();
+}
+// TODO: should parameter be const?
+pub inline fn getTicks(timer: *Timer) i64 {
+    return native.b2GetTicks(timer);
+}
+pub inline fn getMilliseconds(timer: Timer) f32 {
+    return native.b2GetMilliseconds(&timer);
+}
+pub inline fn getMillisecondsAndReset(timer: *Timer) f32 {
+    return native.b2GetMillisecondsAndReset(timer);
+}
+pub inline fn sleepMilliseconds(milliseconds: c_int) void {
+    native.b2SleepMilliseconds(milliseconds);
+}
+pub inline fn yield() void {
+    native.b2Yield();
 }

@@ -1,6 +1,6 @@
 // In C, you would only import the headers you need.
 // This is a binding, so ALL of the headers are included
-pub usingnamespace @cImport({
+const c = @cImport({
     // Many of these are unnessesary. They are all here since it was easiest to just
     // add all of them without thinking about which ones are actually needed
     @cInclude("box2d/api.h");
@@ -22,3 +22,4 @@ pub usingnamespace @cImport({
     @cInclude("box2d/timer.h");
     @cInclude("box2d/types.h");
 });
+pub usingnamespace c;
