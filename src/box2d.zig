@@ -147,7 +147,27 @@ pub const WorldId = extern struct {
     index1: u16,
     revision: u16,
 };
-pub const WorldDef = native.b2WorldDef;
+// The default values were copied from b2DefaultWorldDef
+// MAINTAIN: Make sure the defaults here stay in line with Box2D
+pub const WorldDef = extern struct {
+    gravity: Vec2 = .{.x = 0, .y =-10},
+    // lengthUnitsPerMeter will likely never be moved out of native,
+    // However I want to redeclare it in zig. TODO: re-declare in zig
+    restitutionThreshold: f32 = 1 * native.b2_lengthUnitsPerMeter,
+    contactPushoutVelocity: f32 = 3 * native.b2_lengthUnitsPerMeter,
+    hitEventThreshold: f32 = 1 * native.b2_lengthUnitsPerMeter,
+    contactHertz: f32 = 30,
+    contactDampingRatio: f32 = 10,
+    jointHertz: f32 = 60,
+    jointDampingRatio: f32 = 2,
+    enableSleep: bool = true,
+    enableContinous: bool = true,
+    workerCount: i32 = 0,
+    // TODO: convert these callbacks manually
+    enqueueTask: ?*const native.b2EnqueueTaskCallback = null,
+    finishTask: ?*const native.b2FinishTaskCallback = null,
+    userTaskContext: ?*anyopaque = null,
+};
 pub const DebugDraw = native.b2DebugDraw;
 pub const BodyEvents = native.b2BodyEvents;
 pub const SensorEvents = native.b2SensorEvents;
@@ -168,7 +188,259 @@ pub const PreSolveFn = fn (shapeIdA: ShapeId, shapeIdB: ShapeId, manifold: *Mani
 pub const Profile = native.b2Profile;
 pub const Counters = native.b2Counters;
 pub const BodyDef = native.b2BodyDef;
-pub const BodyId = native.b2BodyId;
+pub const BodyId = extern struct {
+    pub inline fn create(worldId: WorldId, def: *const BodyDef) BodyId {
+        return native.b2CreateBody(worldId, def);
+    }
+
+    pub inline fn destroy(bodyId: BodyId) void {
+        return native.b2DestroyBody(bodyId);
+    }
+
+    pub inline fn isValid(id: BodyId) bool {
+        return native.b2Body_IsValid(id);
+    }
+
+    pub inline fn getType(bodyId: BodyId) BodyType {
+        return native.b2Body_GetType(bodyId);
+    }
+
+    pub inline fn setType(bodyId: BodyId, @"type": BodyType) void {
+        native.b2Body_SetType(bodyId, @"type");
+    }
+
+    pub inline fn setUserData(bodyId: BodyId, userData: ?*anyopaque) void {
+        native.b2Body_SetUserData(bodyId, userData);
+    }
+
+    pub inline fn getUserData(bodyId: BodyId) ?*anyopaque {
+        return native.b2Body_GetUserData(bodyId);
+    }
+
+    pub inline fn getPosition(bodyId: BodyId) Vec2 {
+        return native.b2Body_GetPosition(bodyId);
+    }
+
+    pub inline fn getRotation(bodyId: BodyId) Rot {
+        return native.b2Body_GetRotation(bodyId);
+    }
+
+    pub inline fn getAngle(bodyId: BodyId) f32 {
+        return native.b2Body_GetAngle(bodyId);
+    }
+
+    pub inline fn getTransform(bodyId: BodyId) Transform {
+        return native.b2Body_GetTransform(bodyId);
+    }
+
+    pub inline fn setTransform(bodyId: BodyId, position: Vec2, angle: f32) void {
+        native.b2Body_SetTransform(bodyId, position, angle);
+    }
+
+    pub inline fn getLocalPoint(bodyId: BodyId, worldPoint: Vec2) Vec2 {
+        return native.b2Body_GetLocalPoint(bodyId, worldPoint);
+    }
+
+    pub inline fn getWorldPoint(bodyId: BodyId, localPoint: Vec2) Vec2 {
+        return native.b2Body_GetWorldPoint(bodyId, localPoint);
+    }
+
+    pub inline fn getLocalVector(bodyId: BodyId, worldVector: Vec2) Vec2 {
+        return native.b2Body_GetLocalVector(bodyId, worldVector);
+    }
+
+    pub inline fn getWorldVector(bodyId: BodyId, localVector: Vec2) Vec2 {
+        return native.b2Body_GetWorldVector(bodyId, localVector);
+    }
+
+    pub inline fn getLinearVelocity(bodyId: BodyId) Vec2 {
+        return native.b2Body_GetLinearVelocity(bodyId);
+    }
+
+    pub inline fn getAngularVelocity(bodyId: BodyId) f32 {
+        return native.b2Body_GetAngularVelocity(bodyId);
+    }
+
+    pub inline fn setLinearVelocity(bodyId: BodyId, linearVelocity: Vec2) void {
+        native.b2Body_SetLinearVelocity(bodyId, linearVelocity);
+    }
+
+    pub inline fn setAngularVelocity(bodyId: BodyId, angularVelocity: f32) void {
+        native.b2Body_SetAngularVelocity(bodyId, angularVelocity);
+    }
+
+    pub inline fn applyForce(bodyId: BodyId, force: Vec2, point: Vec2, wake: bool) void {
+        native.b2Body_ApplyForce(bodyId, force, point, wake);
+    }
+
+    pub inline fn applyForceToCenter(bodyId: BodyId, force: Vec2, wake: bool) void {
+        native.b2Body_ApplyForceToCenter(bodyId, force, wake);
+    }
+
+    pub inline fn applyTorque(bodyId: BodyId, torque: f32, wake: bool) void {
+        native.b2Body_ApplyTorque(bodyId, torque, wake);
+    }
+
+    pub inline fn applyLinearImpulse(bodyId: BodyId, impulse: Vec2, point: Vec2, wake: bool) void {
+        native.b2Body_ApplyLinearImpulse(bodyId, impulse, point, wake);
+    }
+
+    pub inline fn applyLinearImpulseToCenter(bodyId: BodyId, impulse: Vec2, wake: bool) void {
+        native.b2Body_ApplyLinearImpulseToCenter(bodyId, impulse, wake);
+    }
+
+    pub inline fn applyAngularImpulse(bodyId: BodyId, impulse: f32, wake: bool) void {
+        native.b2Body_ApplyAngularImpulse(bodyId, impulse, wake);
+    }
+
+    pub inline fn getMass(bodyId: BodyId) f32 {
+        return native.b2Body_GetMass(bodyId);
+    }
+
+    pub inline fn getInertiaTensor(bodyId: BodyId) f32 {
+        return native.b2Body_GetInertiaTensor(bodyId);
+    }
+
+    pub inline fn getLocalCenterOfMass(bodyId: BodyId) Vec2 {
+        return native.b2Body_GetLocalCenterOfMass(bodyId);
+    }
+
+    pub inline fn getWorldCenterOfMass(bodyId: BodyId) Vec2 {
+        return native.b2Body_GetWorldCenterOfMass(bodyId);
+    }
+
+    pub inline fn setMassData(bodyId: BodyId, massData: MassData) void {
+        native.b2Body_SetMassData(bodyId, massData);
+    }
+
+    pub inline fn getMassData(bodyId: BodyId) MassData {
+        return native.b2Body_GetMassData(bodyId);
+    }
+
+    pub inline fn applyMassFromShapes(bodyId: BodyId) void {
+        native.b2Body_ApplyMassFromShapes(bodyId);
+    }
+
+    pub inline fn setAutomaticMass(bodyId: BodyId, automaticMass: bool) void {
+        native.b2Body_SetAutomaticMass(bodyId, automaticMass);
+    }
+
+    pub inline fn getAutomaticMass(bodyId: BodyId) bool {
+        return native.b2Body_GetAutomaticMass(bodyId);
+    }
+
+    pub inline fn setLinearDamping(bodyId: BodyId, linearDamping: f32) void {
+        native.b2Body_SetLinearDamping(bodyId, linearDamping);
+    }
+
+    pub inline fn getLinearDamping(bodyId: BodyId) f32 {
+        return native.b2Body_GetLinearDamping(bodyId);
+    }
+
+    pub inline fn setAngularDamping(bodyId: BodyId, angularDamping: f32) void {
+        native.b2Body_SetAngularDamping(bodyId, angularDamping);
+    }
+
+    pub inline fn getAngularDamping(bodyId: BodyId) f32 {
+        return native.b2Body_GetAngularDamping(bodyId);
+    }
+
+    pub inline fn setGravityScale(bodyId: BodyId, gravityScale: f32) void {
+        native.b2Body_SetGravityScale(bodyId, gravityScale);
+    }
+
+    pub inline fn getGravityScale(bodyId: BodyId) f32 {
+        return native.b2Body_GetGravityScale(bodyId);
+    }
+
+    pub inline fn isAwake(bodyId: BodyId) bool {
+        return native.b2Body_IsAwake(bodyId);
+    }
+
+    pub inline fn setAwake(bodyId: BodyId, awake: bool) void {
+        native.b2Body_SetAwake(bodyId, awake);
+    }
+
+    pub inline fn enableSleep(bodyId: BodyId, _enableSleep: bool) void {
+        native.b2Body_EnableSleep(bodyId, _enableSleep);
+    }
+
+    pub inline fn isSleepEnabled(bodyId: BodyId) bool {
+        return native.b2Body_IsSleepEnabled(bodyId);
+    }
+
+    pub inline fn setSleepThreshold(bodyId: BodyId, sleepVelocity: f32) void {
+        native.b2Body_SetSleepThreshold(bodyId, sleepVelocity);
+    }
+
+    pub inline fn getSleepThreshold(bodyId: BodyId) f32 {
+        return native.b2Body_GetSleepThreshold(bodyId);
+    }
+
+    pub inline fn isEnabled(bodyId: BodyId) bool {
+        return native.b2Body_IsEnabled(bodyId);
+    }
+
+    pub inline fn disable(bodyId: BodyId) void {
+        native.b2Body_Disable(bodyId);
+    }
+
+    pub inline fn enable(bodyId: BodyId) void {
+        native.b2Body_Enable(bodyId);
+    }
+
+    pub inline fn setFixedRotation(bodyId: BodyId, flag: bool) void {
+        native.b2Body_SetFixedRotation(bodyId, flag);
+    }
+
+    pub inline fn isFixedRotation(bodyId: BodyId) bool {
+        return native.b2Body_IsFixedRotation(bodyId);
+    }
+
+    pub inline fn setBullet(bodyId: BodyId, flag: bool) void {
+        native.b2Body_SetBullet(bodyId, flag);
+    }
+
+    pub inline fn isBullet(bodyId: BodyId) bool {
+        return native.b2Body_IsBullet(bodyId);
+    }
+
+    pub inline fn enableHitEvents(bodyId: BodyId, _enableHitEvents: bool) void {
+        native.b2Body_EnableHitEvents(bodyId, _enableHitEvents);
+    }
+
+    pub inline fn getShapeCount(bodyId: BodyId) usize {
+        return @intCast(native.b2Body_GetShapeCount(bodyId));
+    }
+
+    pub inline fn getShapes(bodyId: BodyId, shapes: []ShapeId) usize {
+        return @intCast(native.b2Body_GetShapes(bodyId, shapes.ptr, @intCast(shapes.len)));
+    }
+
+    pub inline fn getJointCount(bodyId: BodyId) usize {
+        return @intCast(native.b2Body_GetJointCount(bodyId));
+    }
+
+    pub inline fn getJoints(bodyId: BodyId, joints: []JointId) usize {
+        return @intCast(native.b2Body_GetJoints(bodyId, joints.ptr, @intCast(joints.len)));
+    }
+
+    pub inline fn getContactCapacity(bodyId: BodyId) usize {
+        return @intCast(native.b2Body_GetContactCapacity(bodyId));
+    }
+
+    pub inline fn getContactData(bodyId: BodyId, contacts: []ContactData) usize {
+        return @intCast(native.b2Body_GetContactData(bodyId, contacts.ptr, @intCast(contacts.len)));
+    }
+
+    pub inline fn computeAABB(bodyId: BodyId) AABB {
+        return native.b2Body_ComputeAABB(bodyId);
+    }
+
+    index1: i32,
+    world0: u16,
+    revision: u16,
+};
 pub const BodyType = enum(c_uint) {
     static = 0,
     kinematic = 1,
@@ -224,254 +496,6 @@ pub const ShapeCastInput = native.b2ShapeCastInput;
 pub const Hull = native.b2Hull;
 pub const Timer = native.b2Timer;
 pub const Mat22 = native.b2Mat22;
-
-pub inline fn createBody(worldId: WorldId, def: *const BodyDef) BodyId {
-    return native.b2CreateBody(worldId, def);
-}
-
-pub inline fn destroyBody(bodyId: BodyId) void {
-    return native.b2DestroyBody(bodyId);
-}
-
-pub inline fn bodyIsValid(id: BodyId) bool {
-    return native.b2Body_IsValid(id);
-}
-
-pub inline fn bodyGetType(bodyId: BodyId) BodyType {
-    return native.b2Body_GetType(bodyId);
-}
-
-pub inline fn bodySetType(bodyId: BodyId, @"type": BodyType) void {
-    native.b2Body_SetType(bodyId, @"type");
-}
-
-pub inline fn bodySetUserData(bodyId: BodyId, userData: ?*anyopaque) void {
-    native.b2Body_SetUserData(bodyId, userData);
-}
-
-pub inline fn bodyGetUserData(bodyId: BodyId) ?*anyopaque {
-    return native.b2Body_GetUserData(bodyId);
-}
-
-pub inline fn bodyGetPosition(bodyId: BodyId) Vec2 {
-    return native.b2Body_GetPosition(bodyId);
-}
-
-pub inline fn bodyGetRotation(bodyId: BodyId) Rot {
-    return native.b2Body_GetRotation(bodyId);
-}
-
-pub inline fn bodyGetAngle(bodyId: BodyId) f32 {
-    return native.b2Body_GetAngle(bodyId);
-}
-
-pub inline fn bodyGetTransform(bodyId: BodyId) Transform {
-    return native.b2Body_GetTransform(bodyId);
-}
-
-pub inline fn bodySetTransform(bodyId: BodyId, position: Vec2, angle: f32) void {
-    native.b2Body_SetTransform(bodyId, position, angle);
-}
-
-pub inline fn bodyGetLocalPoint(bodyId: BodyId, worldPoint: Vec2) Vec2 {
-    return native.b2Body_GetLocalPoint(bodyId, worldPoint);
-}
-
-pub inline fn bodyGetWorldPoint(bodyId: BodyId, localPoint: Vec2) Vec2 {
-    return native.b2Body_GetWorldPoint(bodyId, localPoint);
-}
-
-pub inline fn bodyGetLocalVector(bodyId: BodyId, worldVector: Vec2) Vec2 {
-    return native.b2Body_GetLocalVector(bodyId, worldVector);
-}
-
-pub inline fn bodyGetWorldVector(bodyId: BodyId, localVector: Vec2) Vec2 {
-    return native.b2Body_GetWorldVector(bodyId, localVector);
-}
-
-pub inline fn bodyGetLinearVelocity(bodyId: BodyId) Vec2 {
-    return native.b2Body_GetLinearVelocity(bodyId);
-}
-
-pub inline fn bodyGetAngularVelocity(bodyId: BodyId) f32 {
-    return native.b2Body_GetAngularVelocity(bodyId);
-}
-
-pub inline fn bodySetLinearVelocity(bodyId: BodyId, linearVelocity: Vec2) void {
-    native.b2Body_SetLinearVelocity(bodyId, linearVelocity);
-}
-
-pub inline fn bodySetAngularVelocity(bodyId: BodyId, angularVelocity: f32) void {
-    native.b2Body_SetAngularVelocity(bodyId, angularVelocity);
-}
-
-pub inline fn bodyApplyForce(bodyId: BodyId, force: Vec2, point: Vec2, wake: bool) void {
-    native.b2Body_ApplyForce(bodyId, force, point, wake);
-}
-
-pub inline fn bodyApplyForceToCenter(bodyId: BodyId, force: Vec2, wake: bool) void {
-    native.b2Body_ApplyForceToCenter(bodyId, force, wake);
-}
-
-pub inline fn bodyApplyTorque(bodyId: BodyId, torque: f32, wake: bool) void {
-    native.b2Body_ApplyTorque(bodyId, torque, wake);
-}
-
-pub inline fn bodyApplyLinearImpulse(bodyId: BodyId, impulse: Vec2, point: Vec2, wake: bool) void {
-    native.b2Body_ApplyLinearImpulse(bodyId, impulse, point, wake);
-}
-
-pub inline fn bodyApplyLinearImpulseToCenter(bodyId: BodyId, impulse: Vec2, wake: bool) void {
-    native.b2Body_ApplyLinearImpulseToCenter(bodyId, impulse, wake);
-}
-
-pub inline fn bodyApplyAngularImpulse(bodyId: BodyId, impulse: f32, wake: bool) void {
-    native.b2Body_ApplyAngularImpulse(bodyId, impulse, wake);
-}
-
-pub inline fn bodyGetMass(bodyId: BodyId) f32 {
-    return native.b2Body_GetMass(bodyId);
-}
-
-pub inline fn bodyGetInertiaTensor(bodyId: BodyId) f32 {
-    return native.b2Body_GetInertiaTensor(bodyId);
-}
-
-pub inline fn bodyGetLocalCenterOfMass(bodyId: BodyId) Vec2 {
-    return native.b2Body_GetLocalCenterOfMass(bodyId);
-}
-
-pub inline fn bodyGetWorldCenterOfMass(bodyId: BodyId) Vec2 {
-    return native.b2Body_GetWorldCenterOfMass(bodyId);
-}
-
-pub inline fn bodySetMassData(bodyId: BodyId, massData: MassData) void {
-    native.b2Body_SetMassData(bodyId, massData);
-}
-
-pub inline fn bodyGetMassData(bodyId: BodyId) MassData {
-    return native.b2Body_GetMassData(bodyId);
-}
-
-pub inline fn bodyApplyMassFromShapes(bodyId: BodyId) void {
-    native.b2Body_ApplyMassFromShapes(bodyId);
-}
-
-pub inline fn bodySetAutomaticMass(bodyId: BodyId, automaticMass: bool) void {
-    native.b2Body_SetAutomaticMass(bodyId, automaticMass);
-}
-
-pub inline fn bodyGetAutomaticMass(bodyId: BodyId) bool {
-    return native.b2Body_GetAutomaticMass(bodyId);
-}
-
-pub inline fn bodySetLinearDamping(bodyId: BodyId, linearDamping: f32) void {
-    native.b2Body_SetLinearDamping(bodyId, linearDamping);
-}
-
-pub inline fn bodyGetLinearDamping(bodyId: BodyId) f32 {
-    return native.b2Body_GetLinearDamping(bodyId);
-}
-
-pub inline fn bodySetAngularDamping(bodyId: BodyId, angularDamping: f32) void {
-    native.b2Body_SetAngularDamping(bodyId, angularDamping);
-}
-
-pub inline fn bodyGetAngularDamping(bodyId: BodyId) f32 {
-    return native.b2Body_GetAngularDamping(bodyId);
-}
-
-pub inline fn bodySetGravityScale(bodyId: BodyId, gravityScale: f32) void {
-    native.b2Body_SetGravityScale(bodyId, gravityScale);
-}
-
-pub inline fn bodyGetGravityScale(bodyId: BodyId) f32 {
-    return native.b2Body_GetGravityScale(bodyId);
-}
-
-pub inline fn bodyIsAwake(bodyId: BodyId) bool {
-    return native.b2Body_IsAwake(bodyId);
-}
-
-pub inline fn bodySetAwake(bodyId: BodyId, awake: bool) void {
-    native.b2Body_SetAwake(bodyId, awake);
-}
-
-pub inline fn bodyEnableSleep(bodyId: BodyId, enableSleep: bool) void {
-    native.b2Body_EnableSleep(bodyId, enableSleep);
-}
-
-pub inline fn bodyIsSleepEnabled(bodyId: BodyId) bool {
-    return native.b2Body_IsSleepEnabled(bodyId);
-}
-
-pub inline fn bodySetSleepThreshold(bodyId: BodyId, sleepVelocity: f32) void {
-    native.b2Body_SetSleepThreshold(bodyId, sleepVelocity);
-}
-
-pub inline fn bodyGetSleepThreshold(bodyId: BodyId) f32 {
-    return native.b2Body_GetSleepThreshold(bodyId);
-}
-
-pub inline fn bodyIsEnabled(bodyId: BodyId) bool {
-    return native.b2Body_IsEnabled(bodyId);
-}
-
-pub inline fn bodyDisable(bodyId: BodyId) void {
-    native.b2Body_Disable(bodyId);
-}
-
-pub inline fn bodyEnable(bodyId: BodyId) void {
-    native.b2Body_Enable(bodyId);
-}
-
-pub inline fn bodySetFixedRotation(bodyId: BodyId, flag: bool) void {
-    native.b2Body_SetFixedRotation(bodyId, flag);
-}
-
-pub inline fn bodyIsFixedRotation(bodyId: BodyId) bool {
-    return native.b2Body_IsFixedRotation(bodyId);
-}
-
-pub inline fn bodySetBullet(bodyId: BodyId, flag: bool) void {
-    native.b2Body_SetBullet(bodyId, flag);
-}
-
-pub inline fn bodyIsBullet(bodyId: BodyId) bool {
-    return native.b2Body_IsBullet(bodyId);
-}
-
-pub inline fn bodyEnableHitEvents(bodyId: BodyId, enableHitEvents: bool) void {
-    native.b2Body_EnableHitEvents(bodyId, enableHitEvents);
-}
-
-pub inline fn bodyGetShapeCount(bodyId: BodyId) usize {
-    return @intCast(native.b2Body_GetShapeCount(bodyId));
-}
-
-pub inline fn bodyGetShapes(bodyId: BodyId, shapes: []ShapeId) usize {
-    return @intCast(native.b2Body_GetShapes(bodyId, shapes.ptr, @intCast(shapes.len)));
-}
-
-pub inline fn bodyGetJointCount(bodyId: BodyId) usize {
-    return @intCast(native.b2Body_GetJointCount(bodyId));
-}
-
-pub inline fn bodyGetJoints(bodyId: BodyId, joints: []JointId) usize {
-    return @intCast(native.b2Body_GetJoints(bodyId, joints.ptr, @intCast(joints.len)));
-}
-
-pub inline fn bodyGetContactCapacity(bodyId: BodyId) usize {
-    return @intCast(native.b2Body_GetContactCapacity(bodyId));
-}
-
-pub inline fn bodyGetContactData(bodyId: BodyId, contacts: []ContactData) usize {
-    return @intCast(native.b2Body_GetContactData(bodyId, contacts.ptr, @intCast(contacts.len)));
-}
-
-pub inline fn bodyComputeAABB(bodyId: BodyId) AABB {
-    return native.b2Body_ComputeAABB(bodyId);
-}
 
 pub inline fn createCircleShape(bodyId: BodyId, def: ShapeDef, circle: Circle) ShapeId {
     return native.b2CreateCircleShape(bodyId, &def, &circle);

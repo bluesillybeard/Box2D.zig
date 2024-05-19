@@ -48,3 +48,12 @@ Eventually, the binding will sort everything into namespace structs and use the 
         - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
     - Copy and tweak inline documentation from Box2D
         - This is done last since the documentation is a work in progress
+
+## Update checklist
+When we update the Box2D version, we need to do this set of steps:
+- read over ALL changes that were made. Note any:
+    - API changes
+    - ABI changes
+    - Documentation changes
+    - build system changes.
+- Pull from git and apply the noted changes to the binding.
