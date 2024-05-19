@@ -27,18 +27,7 @@ This also probably works using Zigs package `build.zig.zon` thing, however I hav
 
 ## Other notes
 
-The binding does not significantly change the API. The biggest notable change is that things are slightly renamed to follow style guidlines:
-```
-b2WorldId -> WorldId
-b2CreateWorld() -> createWorld()
-b2World_IsValid() -> worldIsValid()
-
-// This one is an exception - it caused a name conflict which will be removed in stage 3.
-// This is temporary and will hopefully be fixed soon.
-b2Length() -> vec2Length()
-```
-
-Eventually, the binding will sort everything into namespace structs and use the "OOP-like" syntax (`b2World_IsValid(world)` -> `world.isValid()`)
+The binding is under heavy work, so it's quite unstable at the moment. For now, I recomend using the native option (`@import("box2d").native`) until the binding is in a stable state. Hopefully, the binding will be ready for general use before the end of this summer. (I would say next week but I have a lot of other projects)
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
