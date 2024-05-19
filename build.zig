@@ -11,14 +11,18 @@ pub fn build(b: *std.Build) !void {
 
     // test runner
     const t = b.addTest(.{
-        .root_source_file = .{ .path = "tests/tests.zig" },
+        .root_source_file = .{ .path = "src/box2d.zig" },
         .target = target,
         .optimize = optimize,
         .link_libc = true,
     });
-    t.root_module.addImport("box2d", box2dModule);
-    const runStep = b.step("test", "Run tests");
-    runStep.dependOn(&t.step);
+    try link("./", &t.root_module, .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const testArtifact = b.addRunArtifact(t);
+    const runTest = b.step("test", "Run tests");
+    runTest.dependOn(&testArtifact.step);
 
     const staticLib = b.addStaticLibrary(.{
         .name = "box2d",

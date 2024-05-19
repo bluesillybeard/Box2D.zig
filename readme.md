@@ -32,6 +32,10 @@ The binding does not significantly change the API. The biggest notable change is
 b2WorldId -> WorldId
 b2CreateWorld() -> createWorld()
 b2World_IsValid() -> worldIsValid()
+
+// This one is an exception - it caused a name conflict which will be removed in stage 3.
+// This is temporary and will hopefully be fixed soon.
+b2Length() -> vec2Length()
 ```
 
 Eventually, the binding will sort everything into namespace structs and use the "OOP-like" syntax (`b2World_IsValid(world)` -> `world.isValid()`)
@@ -39,9 +43,8 @@ Eventually, the binding will sort everything into namespace structs and use the 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
 - Work on the actual binding
-    - translate all structs by hand
-        - Add comptime asserts to throw an error when the native struct changes so ABI issues don't happen
-    - convert functions like `worldIsValid` to use the Zig "OOP-like" syntax: `world.isValid`
-    - add generics and stuff where reasonable
+    - Move structs out of native and convert functions like `worldIsValid` to use the Zig "OOP-like" syntax: `world.isValid` (Stage 3)
+    - add generics and stuff where reasonable (Stage 4)
         - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
     - Copy and tweak inline documentation from Box2D
+        - This is done last since the documentation is a work in progress

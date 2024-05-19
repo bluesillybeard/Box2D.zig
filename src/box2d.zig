@@ -23,7 +23,130 @@ pub inline fn SetAssertFn(assertFn: *AssertFn) void {
     native.b2SetAssertFcn(assertFn);
 }
 
-pub const WorldId = native.b2WorldId;
+pub const WorldId = extern struct {
+    pub inline fn create(def: WorldDef) WorldId {
+        return native.b2CreateWorld(&def);
+    }
+
+    pub inline fn destroy(worldId: WorldId) void {
+        native.b2DestroyWorld(worldId);
+    }
+
+    pub inline fn isValid(id: WorldId) bool {
+        return native.b2World_IsValid(id);
+    }
+
+    pub inline fn step(worldId: WorldId, timeStep: f32, subStepCount: u32) void {
+        native.b2World_Step(worldId, timeStep, @intCast(subStepCount));
+    }
+
+    pub inline fn draw(worldId: WorldId, dbgDraw: *DebugDraw) void {
+        native.b2World_Draw(worldId, dbgDraw);
+    }
+
+    pub inline fn getBodyEvents(worldId: WorldId) BodyEvents {
+        return native.b2World_GetBodyEvents(worldId);
+    }
+
+    pub inline fn getSensorEvents(worldId: WorldId) SensorEvents {
+        return native.b2World_GetSensorEvents(worldId);
+    }
+
+    pub inline fn getContactEvents(worldId: WorldId) ContactEvents {
+        return native.b2World_GetContactEvents(worldId);
+    }
+
+    pub inline fn overlapAABB(worldId: WorldId, aabb: AABB, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
+        native.b2World_OverlapAABB(worldId, aabb, filter, overlapFn, context);
+    }
+
+    pub inline fn overlapCircle(worldId: WorldId, circle: Circle, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
+        native.b2World_OverlapCircle(worldId, &circle, transform, filter, overlapFn, context);
+    }
+
+    pub inline fn overlapCapsule(worldId: WorldId, capsule: Capsule, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
+        native.b2World_OverlapCapsule(worldId, &capsule, transform, filter, overlapFn, context);
+    }
+
+    pub inline fn overlapPolygon(worldId: WorldId, polygon: Polygon, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
+        native.b2World_OverlapPolygon(worldId, &polygon, transform, filter, overlapFn, context);
+    }
+
+    pub inline fn rayCast(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_RayCast(worldId, origin, translation, filter, castFn, context);
+    }
+
+    pub inline fn rayCastClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
+        return native.b2World_RayCastClosest(worldId, origin, translation, filter);
+    }
+
+    pub inline fn circleCast(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_CircleCast(worldId, &circle, originTransform, translation, filter, castFn, context);
+    }
+
+    pub inline fn capsuleCast(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_CapsuleCast(worldId, &capsule, originTransform, translation, filter, castFn, context);
+    }
+
+    pub inline fn polygonCast(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_PolygonCast(worldId, &polygon, originTransform, translation, filter, castFn, context);
+    }
+
+    pub inline fn enableSleeping(worldId: WorldId, flag: bool) void {
+        native.b2World_EnableSleeping(worldId, flag);
+    }
+
+    pub inline fn enableWarmStarting(worldId: WorldId, flag: bool) void {
+        native.b2World_EnableWarmStarting(worldId, flag);
+    }
+
+    pub inline fn enableContinuous(worldId: WorldId, flag: bool) void {
+        native.b2World_EnableContinuous(worldId, flag);
+    }
+
+    pub inline fn setRestitutionThreshold(worldId: WorldId, value: f32) void {
+        native.b2World_SetRestitutionThreshold(worldId, value);
+    }
+
+    pub inline fn setHitEventThreshold(worldId: WorldId, value: f32) void {
+        native.b2World_SetHitEventThreshold(worldId, value);
+    }
+
+    pub inline fn setPreSolveCallback(worldId: WorldId, preSolveFn: ?*PreSolveFn, context: ?*anyopaque) void {
+        native.b2World_SetPreSolveCallback(worldId, preSolveFn, context);
+    }
+
+    pub inline fn setGravity(worldId: WorldId, gravity: Vec2) void {
+        native.b2World_SetGravity(worldId, gravity);
+    }
+
+    pub inline fn getGravity(worldId: WorldId) Vec2 {
+        return native.b2World_GetGravity(worldId);
+    }
+
+    pub inline fn explode(worldId: WorldId, position: Vec2, radius: f32, impulse: f32) void {
+        native.b2World_Explode(worldId, position, radius, impulse);
+    }
+
+    pub inline fn setContactTuning(worldId: WorldId, hertz: f32, dampingRatio: f32, pushVelocity: f32) void {
+        native.b2World_SetContactTuning(worldId, hertz, dampingRatio, pushVelocity);
+    }
+
+    pub inline fn getProfile(worldId: WorldId) Profile {
+        return native.b2World_GetProfile(worldId);
+    }
+
+    pub inline fn getCounters(worldId: WorldId) Counters {
+        return native.b2World_GetCounters(worldId);
+    }
+
+    pub inline fn dumpMemoryStats(worldId: WorldId) void {
+        native.b2World_DumpMemoryStats(worldId);
+    }
+
+    index1: u16,
+    revision: u16,
+};
 pub const WorldDef = native.b2WorldDef;
 pub const DebugDraw = native.b2DebugDraw;
 pub const BodyEvents = native.b2BodyEvents;
@@ -101,126 +224,6 @@ pub const ShapeCastInput = native.b2ShapeCastInput;
 pub const Hull = native.b2Hull;
 pub const Timer = native.b2Timer;
 pub const Mat22 = native.b2Mat22;
-
-pub inline fn createWorld(def: WorldDef) WorldId {
-    return native.b2CreateWorld(&def);
-}
-
-pub inline fn cestroyWorld(worldId: WorldId) void {
-    native.b2DestroyWorld(worldId);
-}
-
-pub inline fn worldIsValid(id: WorldId) bool {
-    return native.b2World_IsValid(id);
-}
-
-pub inline fn worldStep(worldId: WorldId, timeStep: f32, subStepCount: u32) void {
-    native.b2World_Step(worldId, timeStep, @intCast(subStepCount));
-}
-
-pub inline fn worldDraw(worldId: WorldId, draw: *DebugDraw) void {
-    native.b2World_Draw(worldId, draw);
-}
-
-pub inline fn worldGetBodyEvents(worldId: WorldId) BodyEvents {
-    return native.b2World_GetBodyEvents(worldId);
-}
-
-pub inline fn worldGetSensorEvents(worldId: WorldId) SensorEvents {
-    return native.b2World_GetSensorEvents(worldId);
-}
-
-pub inline fn worldGetContactEvents(worldId: WorldId) ContactEvents {
-    return native.b2World_GetContactEvents(worldId);
-}
-
-pub inline fn worldOverlapAABB(worldId: WorldId, aabb: AABB, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-    native.b2World_OverlapAABB(worldId, aabb, filter, overlapFn, context);
-}
-
-pub inline fn worldOverlapCircle(worldId: WorldId, circle: Circle, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-    native.b2World_OverlapCircle(worldId, &circle, transform, filter, overlapFn, context);
-}
-
-pub inline fn worldOverlapCapsule(worldId: WorldId, capsule: Capsule, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-    native.b2World_OverlapCapsule(worldId, &capsule, transform, filter, overlapFn, context);
-}
-
-pub inline fn worldOverlapPolygon(worldId: WorldId, polygon: Polygon, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-    native.b2World_OverlapPolygon(worldId, &polygon, transform, filter, overlapFn, context);
-}
-
-pub inline fn worldRayCast(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-    native.b2World_RayCast(worldId, origin, translation, filter, castFn, context);
-}
-
-pub inline fn worldRayCastClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
-    return native.b2World_RayCastClosest(worldId, origin, translation, filter);
-}
-
-pub inline fn worldCircleCast(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-    native.b2World_CircleCast(worldId, &circle, originTransform, translation, filter, castFn, context);
-}
-
-pub inline fn worldCapsuleCast(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-    native.b2World_CapsuleCast(worldId, &capsule, originTransform, translation, filter, castFn, context);
-}
-
-pub inline fn worldPolygonCast(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-    native.b2World_PolygonCast(worldId, &polygon, originTransform, translation, filter, castFn, context);
-}
-
-pub inline fn worldEnableSleeping(worldId: WorldId, flag: bool) void {
-    native.b2World_EnableSleeping(worldId, flag);
-}
-
-pub inline fn worldEnableWarmStarting(worldId: WorldId, flag: bool) void {
-    native.b2World_EnableWarmStarting(worldId, flag);
-}
-
-pub inline fn worldEnableContinuous(worldId: WorldId, flag: bool) void {
-    native.b2World_EnableContinuous(worldId, flag);
-}
-
-pub inline fn worldSetRestitutionThreshold(worldId: WorldId, value: f32) void {
-    native.b2World_SetRestitutionThreshold(worldId, value);
-}
-
-pub inline fn worldSetHitEventThreshold(worldId: WorldId, value: f32) void {
-    native.b2World_SetHitEventThreshold(worldId, value);
-}
-
-pub inline fn worldSetPreSolveCallback(worldId: WorldId, preSolveFn: ?*PreSolveFn, context: ?*anyopaque) void {
-    native.b2World_SetPreSolveCallback(worldId, preSolveFn, context);
-}
-
-pub inline fn worldSetGravity(worldId: WorldId, gravity: Vec2) void {
-    native.b2World_SetGravity(worldId, gravity);
-}
-
-pub inline fn worldGetGravity(worldId: WorldId) Vec2 {
-    return native.b2World_GetGravity(worldId);
-}
-
-pub inline fn worldExplode(worldId: WorldId, position: Vec2, radius: f32, impulse: f32) void {
-    native.b2World_Explode(worldId, position, radius, impulse);
-}
-
-pub inline fn worldSetContactTuning(worldId: WorldId, hertz: f32, dampingRatio: f32, pushVelocity: f32) void {
-    native.b2World_SetContactTuning(worldId, hertz, dampingRatio, pushVelocity);
-}
-
-pub inline fn worldGetProfile(worldId: WorldId) Profile {
-    return native.b2World_GetProfile(worldId);
-}
-
-pub inline fn worldGetCounters(worldId: WorldId) Counters {
-    return native.b2World_GetCounters(worldId);
-}
-
-pub inline fn worldDumpMemoryStats(worldId: WorldId) void {
-    native.b2World_DumpMemoryStats(worldId);
-}
 
 pub inline fn createBody(worldId: WorldId, def: *const BodyDef) BodyId {
     return native.b2CreateBody(worldId, def);
@@ -1679,4 +1682,132 @@ pub inline fn sleepMilliseconds(milliseconds: c_int) void {
 }
 pub inline fn yield() void {
     native.b2Yield();
+}
+
+// This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
+fn refAllDeclsExceptNative(T: type) void {
+    inline for (comptime std.meta.declarations(T)) |decl| {
+        if (!std.mem.eql(u8, decl.name, "native")) {
+            _ = &@field(T, decl.name);
+        }
+    }
+}
+
+// The only point of this test is to make sure Box2D is linked correctly.
+// It is essentially a copy of test/test_math.c
+// Box2D itself is well tested. Seeing as this binding is quite simple, I don't think it needs extensive unit testing beyond this.
+test "MathTest" {
+    refAllDeclsExceptNative(@This());
+    const zero = native.b2Vec2_zero;
+    const one = native.b2Vec2{ .x = 1.0, .y = 1.0 };
+    const two = native.b2Vec2{ .x = 2.0, .y = 2.0 };
+
+    var v = native.b2Add(one, two);
+    try std.testing.expect(v.x == 3.0 and v.y == 3.0);
+
+    v = native.b2Sub(zero, two);
+    try std.testing.expect(v.x == -2.0 and v.y == -2.0);
+
+    v = native.b2Add(two, two);
+    try std.testing.expect(v.x != 5.0 and v.y != 5.0);
+
+    const xf1 = native.b2Transform{ .p = .{ .x = -2.0, .y = 3.0 }, .q = native.b2MakeRot(1.0) };
+    const xf2 = native.b2Transform{ .p = .{ .x = 1.0, .y = 0.0 }, .q = native.b2MakeRot(-2.0) };
+
+    const xf = native.b2MulTransforms(xf2, xf1);
+
+    v = native.b2TransformPoint(xf2, native.b2TransformPoint(xf1, two));
+
+    const u = native.b2TransformPoint(xf, two);
+
+    try std.testing.expectApproxEqAbs(0, u.y - v.y, 10.0 * std.math.floatEps(f32));
+
+    v = native.b2TransformPoint(xf1, two);
+    v = native.b2InvTransformPoint(xf1, v);
+
+    try std.testing.expectApproxEqAbs(0, v.x - two.x, 8.0 * std.math.floatEps(f32));
+    try std.testing.expectApproxEqAbs(0, v.y - two.y, 8.0 * std.math.floatEps(f32));
+}
+
+// This test invokes ABI compatibility checks, so ABI incompatibilities are caught before they cause memory errors.
+test "abiCompat" {
+    // Things that need to be verified here: structs, function pointers, enums
+    // Everything else will be automatically verified by the compiler
+    // Here are the structs
+    try std.testing.expect(structsAreABICompatible(WorldId, native.b2WorldId));
+    try std.testing.expect(structsAreABICompatible(WorldDef, native.b2WorldDef));
+    try std.testing.expect(structsAreABICompatible(DebugDraw, native.b2DebugDraw));
+    try std.testing.expect(structsAreABICompatible(BodyEvents, native.b2BodyEvents));
+    try std.testing.expect(structsAreABICompatible(SensorEvents, native.b2SensorEvents));
+    try std.testing.expect(structsAreABICompatible(ContactEvents, native.b2ContactEvents));
+    try std.testing.expect(structsAreABICompatible(AABB, native.b2AABB));
+    try std.testing.expect(structsAreABICompatible(QueryFilter, native.b2QueryFilter));
+    try std.testing.expect(structsAreABICompatible(ShapeId, native.b2ShapeId));
+    try std.testing.expect(structsAreABICompatible(Circle, native.b2Circle));
+    try std.testing.expect(structsAreABICompatible(Transform, native.b2Transform));
+    try std.testing.expect(structsAreABICompatible(Capsule, native.b2Capsule));
+    try std.testing.expect(structsAreABICompatible(Polygon, native.b2Polygon));
+    try std.testing.expect(structsAreABICompatible(Vec2, native.b2Vec2));
+    try std.testing.expect(structsAreABICompatible(RayResult, native.b2RayResult));
+    try std.testing.expect(structsAreABICompatible(Manifold, native.b2Manifold));
+    try std.testing.expect(structsAreABICompatible(Profile, native.b2Profile));
+    try std.testing.expect(structsAreABICompatible(Counters, native.b2Counters));
+    try std.testing.expect(structsAreABICompatible(BodyDef, native.b2BodyDef));
+    try std.testing.expect(structsAreABICompatible(BodyId, native.b2BodyId));
+    try std.testing.expect(structsAreABICompatible(Rot, native.b2Rot));
+    try std.testing.expect(structsAreABICompatible(MassData, native.b2MassData));
+    try std.testing.expect(structsAreABICompatible(JointId, native.b2JointId));
+    try std.testing.expect(structsAreABICompatible(ContactData, native.b2ContactData));
+    try std.testing.expect(structsAreABICompatible(ShapeDef, native.b2ShapeDef));
+    try std.testing.expect(structsAreABICompatible(Segment, native.b2Segment));
+    try std.testing.expect(structsAreABICompatible(Filter, native.b2Filter));
+    try std.testing.expect(structsAreABICompatible(CastOutput, native.b2CastOutput));
+    try std.testing.expect(structsAreABICompatible(SmoothSegment, native.b2SmoothSegment));
+    try std.testing.expect(structsAreABICompatible(ChainId, native.b2ChainId));
+    try std.testing.expect(structsAreABICompatible(ChainDef, native.b2ChainDef));
+    try std.testing.expect(structsAreABICompatible(DistanceJointDef, native.b2DistanceJointDef));
+    try std.testing.expect(structsAreABICompatible(MotorJointDef, native.b2MotorJointDef));
+    try std.testing.expect(structsAreABICompatible(MouseJointDef, native.b2MouseJointDef));
+    try std.testing.expect(structsAreABICompatible(PrismaticJointDef, native.b2PrismaticJointDef));
+    try std.testing.expect(structsAreABICompatible(RevoluteJointDef, native.b2RevoluteJointDef));
+    try std.testing.expect(structsAreABICompatible(WeldJointDef, native.b2WeldJointDef));
+    try std.testing.expect(structsAreABICompatible(WheelJointDef, native.b2WheelJointDef));
+    try std.testing.expect(structsAreABICompatible(Color, native.b2Color));
+    try std.testing.expect(structsAreABICompatible(SegmentDistanceResult, native.b2SegmentDistanceResult));
+    try std.testing.expect(structsAreABICompatible(DistanceCache, native.b2DistanceCache));
+    try std.testing.expect(structsAreABICompatible(DistanceInput, native.b2DistanceInput));
+    try std.testing.expect(structsAreABICompatible(DistanceOutput, native.b2DistanceOutput));
+    try std.testing.expect(structsAreABICompatible(ShapeCastPairInput, native.b2ShapeCastPairInput));
+    try std.testing.expect(structsAreABICompatible(DistanceProxy, native.b2DistanceProxy));
+    try std.testing.expect(structsAreABICompatible(Sweep, native.b2Sweep));
+    try std.testing.expect(structsAreABICompatible(DynamicTree, native.b2DynamicTree));
+    try std.testing.expect(structsAreABICompatible(RayCastInput, native.b2RayCastInput));
+    try std.testing.expect(structsAreABICompatible(ShapeCastInput, native.b2ShapeCastInput));
+    try std.testing.expect(structsAreABICompatible(Hull, native.b2Hull));
+    try std.testing.expect(structsAreABICompatible(Timer, native.b2Timer));
+    try std.testing.expect(structsAreABICompatible(Mat22, native.b2Mat22));
+    // TODO: and the function pointers
+    // TODO: and the enums
+}
+
+fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
+    const aInfo = @typeInfo(A);
+    const bInfo = @typeInfo(B);
+    // Lol who cares about things that aren't structs
+    if(aInfo != .Struct) return false;
+    if(bInfo != .Struct) return false;
+    // Make sure they have the same layout and that layout is ABI stable
+    if(aInfo.Struct.layout == .auto) return false;
+    if(aInfo.Struct.layout != bInfo.Struct.layout) return false;
+    
+    if(aInfo.Struct.fields.len != bInfo.Struct.fields.len) return false;
+    inline for(aInfo.Struct.fields, 0..) |aField, i| {
+        // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
+        const bField = bInfo.Struct.fields[i];
+        // this *could* do a recursive ABI check on the fields.
+        // However, that would be a lot of work, so just check that the sizes match and call it a day
+        if(@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
+    }
+    // None of the checks failed, so assume they are compatible at this point
+    return true;
 }
