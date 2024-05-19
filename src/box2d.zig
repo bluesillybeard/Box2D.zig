@@ -5,23 +5,67 @@ pub const native = @import("box2dnative.zig");
 // TODO: add function that just takes a Zig allocator object.
 // The free function does not have a length argument while Zig allocators require that. I can probably just add a usize worth of extra bytes per allocation to store the length.
 
+// Types that have not been fully translated yet
+
+// TODO: Instead of translating these types, translate the functions they are related to and remove these types entirely.
+// The translated functions should use proxy functions to avoid the calling convention restriction and allow context generics
+pub const CastResultFn = fn (shape: ShapeId, pos: Vec2, normal: Vec2, fraction: f32, context: ?*anyopaque) callconv(.C) f32;
+pub const PreSolveFn = fn (shapeIdA: ShapeId, shapeIdB: ShapeId, manifold: *Manifold, context: ?*anyopaque) callconv(.C) bool;
+pub const b2TreeQueryCallbackFn = fn (proxyId: i32, userData: i32, context: ?*anyopaque) callconv(.C) bool;
+pub const b2TreeRayCastCallbackFn = fn (*const RayCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
+pub const b2TreeShapeCastCallbackFn = fn (*const ShapeCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
+pub const OverlapResultFn = fn (shape: ShapeId, context: ?*anyopaque) callconv(.C) bool;
 pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) *anyopaque;
-
 pub const FreeFn = fn (mem: *anyopaque) callconv(.C) void;
-
 pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
 
-pub inline fn SetAllocator(alloc: *AllocFn, free: *FreeFn) void {
-    native.b2SetAllocator(&alloc, &free);
-}
+pub const Circle = native.b2Circle;
+pub const RayResult = native.b2RayResult;
+pub const Manifold = native.b2Manifold;
+pub const Profile = native.b2Profile;
+pub const Counters = native.b2Counters;
+pub const BodyDef = native.b2BodyDef;
+pub const MassData = native.b2MassData;
+pub const JointId = native.b2JointId;
+pub const ContactData = native.b2ContactData;
+pub const ShapeDef = native.b2ShapeDef;
+pub const Segment = native.b2Segment;
+pub const Filter = native.b2Filter;
+pub const CastOutput = native.b2CastOutput;
+pub const SmoothSegment = native.b2SmoothSegment;
+pub const ChainId = native.b2ChainId;
+pub const ChainDef = native.b2ChainDef;
+pub const DistanceJointDef = native.b2DistanceJointDef;
+pub const MotorJointDef = native.b2MotorJointDef;
+pub const MouseJointDef = native.b2MouseJointDef;
+pub const PrismaticJointDef = native.b2PrismaticJointDef;
+pub const RevoluteJointDef = native.b2RevoluteJointDef;
+pub const WeldJointDef = native.b2WeldJointDef;
+pub const WheelJointDef = native.b2WheelJointDef;
+pub const Color = native.b2Color;
+pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
+pub const DistanceCache = native.b2DistanceCache;
+pub const DistanceInput = native.b2DistanceInput;
+pub const DistanceOutput = native.b2DistanceOutput;
+pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
+pub const DistanceProxy = native.b2DistanceProxy;
+pub const Sweep = native.b2Sweep;
+pub const DynamicTree = native.b2DynamicTree;
+pub const RayCastInput = native.b2RayCastInput;
+pub const ShapeCastInput = native.b2ShapeCastInput;
+pub const Hull = native.b2Hull;
+pub const Timer = native.b2Timer;
+pub const Capsule = native.b2Capsule;
+pub const Polygon = native.b2Polygon;
+pub const DebugDraw = native.b2DebugDraw;
+pub const BodyEvents = native.b2BodyEvents;
+pub const SensorEvents = native.b2SensorEvents;
+pub const ContactEvents = native.b2ContactEvents;
+pub const AABB = native.b2AABB;
+pub const QueryFilter = native.b2QueryFilter;
+pub const ShapeId = native.b2ShapeId;
 
-pub inline fn GetByteCount() u32 {
-    return @intCast(native.b2GetByteCount());
-}
-
-pub inline fn SetAssertFn(assertFn: *AssertFn) void {
-    native.b2SetAssertFcn(assertFn);
-}
+// Types that have been translated
 
 pub const WorldId = extern struct {
     pub inline fn create(def: WorldDef) WorldId {
@@ -150,7 +194,7 @@ pub const WorldId = extern struct {
 // The default values were copied from b2DefaultWorldDef
 // MAINTAIN: Make sure the defaults here stay in line with Box2D
 pub const WorldDef = extern struct {
-    gravity: Vec2 = .{.x = 0, .y =-10},
+    gravity: Vec2 = .{ .x = 0, .y = -10 },
     // lengthUnitsPerMeter will likely never be moved out of native,
     // However I want to redeclare it in zig. TODO: re-declare in zig
     restitutionThreshold: f32 = 1 * native.b2_lengthUnitsPerMeter,
@@ -168,26 +212,183 @@ pub const WorldDef = extern struct {
     finishTask: ?*const native.b2FinishTaskCallback = null,
     userTaskContext: ?*anyopaque = null,
 };
-pub const DebugDraw = native.b2DebugDraw;
-pub const BodyEvents = native.b2BodyEvents;
-pub const SensorEvents = native.b2SensorEvents;
-pub const ContactEvents = native.b2ContactEvents;
-pub const AABB = native.b2AABB;
-pub const QueryFilter = native.b2QueryFilter;
-pub const ShapeId = native.b2ShapeId;
-pub const OverlapResultFn = fn (shape: ShapeId, context: ?*anyopaque) callconv(.C) bool;
-pub const Circle = native.b2Circle;
-pub const Transform = native.b2Transform;
-pub const Capsule = native.b2Capsule;
-pub const Polygon = native.b2Polygon;
-pub const Vec2 = native.b2Vec2;
-pub const CastResultFn = fn (shape: ShapeId, pos: Vec2, normal: Vec2, fraction: f32, context: ?*anyopaque) callconv(.C) f32;
-pub const RayResult = native.b2RayResult;
-pub const Manifold = native.b2Manifold;
-pub const PreSolveFn = fn (shapeIdA: ShapeId, shapeIdB: ShapeId, manifold: *Manifold, context: ?*anyopaque) callconv(.C) bool;
-pub const Profile = native.b2Profile;
-pub const Counters = native.b2Counters;
-pub const BodyDef = native.b2BodyDef;
+pub const Transform = extern struct {
+    pub inline fn transformPoint(xf: Transform, p: Vec2) Vec2 {
+        return Vec2{
+            .x = ((xf.q.c * p.x) - (xf.q.s * p.y)) + xf.p.x,
+            .y = ((xf.q.s * p.x) + (xf.q.c * p.y)) + xf.p.y,
+        };
+    }
+
+    pub inline fn invTransformPoint(xf: Transform, p: Vec2) Vec2 {
+        const vx: f32 = p.x - xf.p.x;
+        const vy: f32 = p.y - xf.p.y;
+        return Vec2{
+            .x = (xf.q.c * vx) + (xf.q.s * vy),
+            .y = (-xf.q.s * vx) + (xf.q.c * vy),
+        };
+    }
+
+    pub inline fn mul(A: Transform, B: Transform) Transform {
+        return Transform{
+            .q = A.q.mul(B.q),
+            .p = A.q.rotateVector(B.p).add(A.p),
+        };
+    }
+
+    pub inline fn invMul(A: Transform, B: Transform) Transform {
+        return Transform{
+            .q = A.q.invMul(B.q),
+            .p = A.q.invRotateVector(B.p.sub(A.p)),
+        };
+    }
+    p: Vec2,
+    q: Rot,
+};
+pub const Vec2 = extern struct {
+    pub inline fn dot(a: Vec2, b: Vec2) f32 {
+        return (a.x * b.x) + (a.y * b.y);
+    }
+
+    pub inline fn cross(a: Vec2, b: Vec2) f32 {
+        return (a.x * b.y) - (a.y * b.x);
+    }
+
+    pub inline fn crossVS(v: Vec2, s: f32) Vec2 {
+        return Vec2{
+            .x = s * v.y,
+            .y = -s * v.x,
+        };
+    }
+
+    pub inline fn crossSV(s: f32, v: Vec2) Vec2 {
+        return Vec2{
+            .x = -s * v.y,
+            .y = s * v.x,
+        };
+    }
+
+    pub inline fn leftPerp(v: Vec2) Vec2 {
+        return Vec2{
+            .x = -v.y,
+            .y = v.x,
+        };
+    }
+
+    pub inline fn rightPerp(v: Vec2) Vec2 {
+        return Vec2{
+            .x = v.y,
+            .y = -v.x,
+        };
+    }
+
+    pub inline fn add(a: Vec2, b: Vec2) Vec2 {
+        return Vec2{
+            .x = a.x + b.x,
+            .y = a.y + b.y,
+        };
+    }
+
+    pub inline fn sub(a: Vec2, b: Vec2) Vec2 {
+        return Vec2{
+            .x = a.x - b.x,
+            .y = a.y - b.y,
+        };
+    }
+
+    pub inline fn neg(a: Vec2) Vec2 {
+        return Vec2{
+            .x = -a.x,
+            .y = -a.y,
+        };
+    }
+
+    pub inline fn lerp(a: Vec2, b: Vec2, t: f32) Vec2 {
+        return Vec2{
+            .x = ((1.0 - t) * a.x) + (t * b.x),
+            .y = ((1.0 - t) * a.y) + (t * b.y),
+        };
+    }
+
+    pub inline fn mul(a: Vec2, b: Vec2) Vec2 {
+        return Vec2{
+            .x = a.x * b.x,
+            .y = a.y * b.y,
+        };
+    }
+
+    pub inline fn mulSV(s: f32, v: Vec2) Vec2 {
+        return Vec2{
+            .x = s * v.x,
+            .y = s * v.y,
+        };
+    }
+
+    pub inline fn mulAdd(a: Vec2, s: f32, b: Vec2) Vec2 {
+        return Vec2{
+            .x = a.x + (s * b.x),
+            .y = a.y + (s * b.y),
+        };
+    }
+
+    pub inline fn mulSub(a: Vec2, s: f32, b: Vec2) Vec2 {
+        return Vec2{
+            .x = a.x - (s * b.x),
+            .y = a.y - (s * b.y),
+        };
+    }
+
+    pub inline fn abs(a: Vec2) Vec2 {
+        return Vec2{
+            .x = @abs(a.x),
+            .y = @abs(a.y),
+        };
+    }
+
+    pub inline fn min(a: Vec2, b: Vec2) Vec2 {
+        return Vec2{
+            .x = @min(a.x, b.x),
+            .y = @min(a.y, b.y),
+        };
+    }
+
+    pub inline fn max(a: Vec2, b: Vec2) Vec2 {
+        return Vec2{
+            .x = @max(a.x, b.x),
+            .y = @max(a.y, b.y),
+        };
+    }
+
+    pub inline fn clamp(v: Vec2, lower: Vec2, upper: Vec2) Vec2 {
+        return Vec2{
+            .x = std.math.clamp(v.x, lower.x, upper.x),
+            .y = std.math.clamp(v.y, lower.y, upper.y),
+        };
+    }
+
+    pub inline fn length(v: Vec2) f32 {
+        return @sqrt((v.x * v.x) + (v.y * v.y));
+    }
+
+    pub inline fn lengthSquared(v: Vec2) f32 {
+        return (v.x * v.x) + (v.y * v.y);
+    }
+
+    pub inline fn distance(a: Vec2, b: Vec2) f32 {
+        const dx: f32 = b.x - a.x;
+        const dy: f32 = b.y - a.y;
+        return @sqrt((dx * dx) + (dy * dy));
+    }
+
+    pub inline fn distanceSquared(a: Vec2, b: Vec2) f32 {
+        const dx: f32 = b.x - a.x;
+        const dy: f32 = b.y - a.y;
+        return (dx * dx) + (dy * dy);
+    }
+
+    x: f32,
+    y: f32,
+};
 pub const BodyId = extern struct {
     pub inline fn create(worldId: WorldId, def: *const BodyDef) BodyId {
         return native.b2CreateBody(worldId, def);
@@ -446,12 +647,114 @@ pub const BodyType = enum(c_uint) {
     kinematic = 1,
     dynamic = 2,
 };
-pub const Rot = native.b2Rot;
-pub const MassData = native.b2MassData;
-pub const JointId = native.b2JointId;
-pub const ContactData = native.b2ContactData;
-pub const ShapeDef = native.b2ShapeDef;
-pub const Segment = native.b2Segment;
+pub const Rot = extern struct {
+    pub inline fn fromRadians(angle: f32) Rot {
+        const q: Rot = Rot{
+            .c = @cos(angle),
+            .s = @sin(angle),
+        };
+        return q;
+    }
+
+    pub inline fn normalize(q: Rot) Rot {
+        const mag: f32 = @sqrt((q.s * q.s) + (q.c * q.c));
+        const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
+        const qn: Rot = Rot{
+            .c = q.c * invMag,
+            .s = q.s * invMag,
+        };
+        return qn;
+    }
+
+    pub inline fn isNormalized(q: Rot) bool {
+        const qq: f32 = (q.s * q.s) + (q.c * q.c);
+        return ((1.0 - 0.0006000000284984708) < qq) and (qq < (1.0 + 0.0006000000284984708));
+    }
+
+    pub inline fn nLerp(q1: Rot, q2: Rot, t: f32) Rot {
+        const omt: f32 = 1.0 - t;
+        const q: Rot = Rot{
+            .c = (omt * q1.c) + (t * q2.c),
+            .s = (omt * q1.s) + (t * q2.s),
+        };
+        return q.normalize();
+    }
+
+    pub inline fn integrateRotation(q1: Rot, deltaAngle: f32) Rot {
+        const q2: Rot = Rot{
+            .c = q1.c - (deltaAngle * q1.s),
+            .s = q1.s + (deltaAngle * q1.c),
+        };
+        const mag: f32 = @sqrt((q2.s * q2.s) + (q2.c * q2.c));
+        const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
+        const qn: Rot = Rot{
+            .c = q2.c * invMag,
+            .s = q2.s * invMag,
+        };
+        return qn;
+    }
+
+    pub inline fn computeAngularVelocity(q1: Rot, q2: Rot, inv_h: f32) f32 {
+        const omega: f32 = inv_h * ((q2.s * q1.c) - (q2.c * q1.s));
+        return omega;
+    }
+
+    pub inline fn toRadians(q: Rot) f32 {
+        // TODO: verify Y and X weren't accidentally swapped
+        return std.math.atan2(q.s, q.c);
+    }
+
+    pub inline fn getXAxis(q: Rot) Vec2 {
+        const v: Vec2 = Vec2{
+            .x = q.c,
+            .y = q.s,
+        };
+        return v;
+    }
+    pub inline fn getYAxis(q: Rot) Vec2 {
+        const v: Vec2 = Vec2{
+            .x = -q.s,
+            .y = q.c,
+        };
+        return v;
+    }
+    pub inline fn mul(q: Rot, r: Rot) Rot {
+        var qr: Rot = undefined;
+        qr.s = (q.s * r.c) + (q.c * r.s);
+        qr.c = (q.c * r.c) - (q.s * r.s);
+        return qr;
+    }
+    pub inline fn invMul(q: Rot, r: Rot) Rot {
+        var qr: Rot = undefined;
+        qr.s = (q.c * r.s) - (q.s * r.c);
+        qr.c = (q.c * r.c) + (q.s * r.s);
+        return qr;
+    }
+    pub inline fn relativeAngle(b: Rot, a: Rot) f32 {
+        const s: f32 = (b.s * a.c) - (b.c * a.s);
+        const c: f32 = (b.c * a.c) + (b.s * a.s);
+        return std.math.atan2(s, c);
+    }
+    pub inline fn rotateVector(q: Rot, v: Vec2) Vec2 {
+        return Vec2{
+            .x = (q.c * v.x) - (q.s * v.y),
+            .y = (q.s * v.x) + (q.c * v.y),
+        };
+    }
+    pub inline fn invRotateVector(q: Rot, v: Vec2) Vec2 {
+        return Vec2{
+            .x = (q.c * v.x) + (q.s * v.y),
+            .y = (-q.s * v.x) + (q.c * v.y),
+        };
+    }
+    pub inline fn isValid(q: Rot) bool {
+        return native.b2Rot_IsValid(q);
+    }
+    /// Cosine component
+    c: f32,
+    /// Sine component
+    s: f32,
+};
 pub const ShapeType = enum(c_uint) {
     circle = 0,
     capsule = 1,
@@ -461,18 +764,6 @@ pub const ShapeType = enum(c_uint) {
     // Yeetis Beatis Bonkis Donkis
     shapeTypeCount = 5,
 };
-pub const Filter = native.b2Filter;
-pub const CastOutput = native.b2CastOutput;
-pub const SmoothSegment = native.b2SmoothSegment;
-pub const ChainId = native.b2ChainId;
-pub const ChainDef = native.b2ChainDef;
-pub const DistanceJointDef = native.b2DistanceJointDef;
-pub const MotorJointDef = native.b2MotorJointDef;
-pub const MouseJointDef = native.b2MouseJointDef;
-pub const PrismaticJointDef = native.b2PrismaticJointDef;
-pub const RevoluteJointDef = native.b2RevoluteJointDef;
-pub const WeldJointDef = native.b2WeldJointDef;
-pub const WheelJointDef = native.b2WheelJointDef;
 pub const JointType = enum(c_uint) {
     distance,
     motor,
@@ -482,20 +773,22 @@ pub const JointType = enum(c_uint) {
     weld,
     wheel,
 };
-pub const Color = native.b2Color;
-pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
-pub const DistanceCache = native.b2DistanceCache;
-pub const DistanceInput = native.b2DistanceInput;
-pub const DistanceOutput = native.b2DistanceOutput;
-pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
-pub const DistanceProxy = native.b2DistanceProxy;
-pub const Sweep = native.b2Sweep;
-pub const DynamicTree = native.b2DynamicTree;
-pub const RayCastInput = native.b2RayCastInput;
-pub const ShapeCastInput = native.b2ShapeCastInput;
-pub const Hull = native.b2Hull;
-pub const Timer = native.b2Timer;
-pub const Mat22 = native.b2Mat22;
+
+// Functions that have been translated but don't fit into any of the above structs
+
+pub inline fn GetByteCount() usize {
+    return @intCast(native.b2GetByteCount());
+}
+
+// Functions that have not been translated
+
+pub inline fn SetAllocator(alloc: *AllocFn, free: *FreeFn) void {
+    native.b2SetAllocator(&alloc, &free);
+}
+
+pub inline fn SetAssertFn(assertFn: *AssertFn) void {
+    native.b2SetAssertFcn(assertFn);
+}
 
 pub inline fn createCircleShape(bodyId: BodyId, def: ShapeDef, circle: Circle) ShapeId {
     return native.b2CreateCircleShape(bodyId, &def, &circle);
@@ -1265,25 +1558,19 @@ pub inline fn dynamicTreeEnlargeProxy(tree: *DynamicTree, proxyId: i32, aabb: AA
     native.b2DynamicTree_EnlargeProxy(tree, proxyId, aabb);
 }
 
-pub const b2TreeQueryCallbackFcn = fn (proxyId: i32, userData: i32, context: ?*anyopaque) callconv(.C) bool;
-
-pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const b2TreeQueryCallbackFcn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const b2TreeQueryCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_QueryFiltered(&tree, aabb, maskBits, callback, context);
 }
 
-pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const b2TreeQueryCallbackFcn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const b2TreeQueryCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_Query(&tree, aabb, callback, context);
 }
 
-pub const b2TreeRayCastCallbackFcn = fn (*const RayCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
-
-pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const b2TreeRayCastCallbackFcn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const b2TreeRayCastCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_RayCast(&tree, &input, maskBits, callback, context);
 }
 
-pub const b2TreeShapeCastCallbackFcn = fn (*const ShapeCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
-
-pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const b2TreeShapeCastCallbackFcn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const b2TreeShapeCastCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_ShapeCast(&tree, &input, maskBits, callback, context);
 }
 
@@ -1340,298 +1627,13 @@ pub inline fn validateHull(hull: Hull) bool {
     return native.b2ValidateHull(&hull);
 }
 
-// TODO: for the following few functions, translate properly
-pub inline fn dot(a: Vec2, b: Vec2) f32 {
-    return (a.x * b.x) + (a.y * b.y);
-}
-pub inline fn cross(a: Vec2, b: Vec2) f32 {
-    return (a.x * b.y) - (a.y * b.x);
-}
-pub inline fn crossVS(v: Vec2, s: f32) Vec2 {
-    return Vec2{
-        .x = s * v.y,
-        .y = -s * v.x,
-    };
-}
-pub inline fn crossSV(s: f32, v: Vec2) Vec2 {
-    return Vec2{
-        .x = -s * v.y,
-        .y = s * v.x,
-    };
-}
-pub inline fn leftPerp(v: Vec2) Vec2 {
-    return Vec2{
-        .x = -v.y,
-        .y = v.x,
-    };
-}
-pub inline fn rightPerp(v: Vec2) Vec2 {
-    return Vec2{
-        .x = v.y,
-        .y = -v.x,
-    };
-}
-pub inline fn add(a: Vec2, b: Vec2) Vec2 {
-    return Vec2{
-        .x = a.x + b.x,
-        .y = a.y + b.y,
-    };
-}
-pub inline fn sub(a: Vec2, b: Vec2) Vec2 {
-    return Vec2{
-        .x = a.x - b.x,
-        .y = a.y - b.y,
-    };
-}
-pub inline fn neg(a: Vec2) Vec2 {
-    return Vec2{
-        .x = -a.x,
-        .y = -a.y,
-    };
-}
-pub inline fn lerp(a: Vec2, b: Vec2, t: f32) Vec2 {
-    return Vec2{
-        .x = ((1.0 - t) * a.x) + (t * b.x),
-        .y = ((1.0 - t) * a.y) + (t * b.y),
-    };
-}
-pub inline fn mul(a: Vec2, b: Vec2) Vec2 {
-    return Vec2{
-        .x = a.x * b.x,
-        .y = a.y * b.y,
-    };
-}
-pub inline fn mulSV(s: f32, v: Vec2) Vec2 {
-    return Vec2{
-        .x = s * v.x,
-        .y = s * v.y,
-    };
-}
-pub inline fn mulAdd(a: Vec2, s: f32, b: Vec2) Vec2 {
-    return Vec2{
-        .x = a.x + (s * b.x),
-        .y = a.y + (s * b.y),
-    };
-}
-pub inline fn mulSub(a: Vec2, s: f32, b: Vec2) Vec2 {
-    return Vec2{
-        .x = a.x - (s * b.x),
-        .y = a.y - (s * b.y),
-    };
-}
-pub inline fn abs(a: Vec2) Vec2 {
-    var b: Vec2 = undefined;
-    b.x = @abs(a.x);
-    b.y = @abs(a.y);
-    return b;
-}
-pub inline fn min(a: Vec2, b: Vec2) Vec2 {
-    var c: Vec2 = undefined;
-    c.x = @min(a.x, b.x);
-    c.y = @min(a.y, b.y);
-    return c;
-}
-pub inline fn max(a: Vec2, b: Vec2) Vec2 {
-    var c: Vec2 = undefined;
-    c.x = @max(a.x, b.x);
-    c.y = @max(a.y, b.y);
-    return c;
-}
-pub inline fn clamp(v: Vec2, lower: Vec2, upper: Vec2) Vec2 {
-    var c: Vec2 = undefined;
-    c.x = std.math.clamp(v.x, lower.x, upper.x);
-    c.y = std.math.clamp(v.y, lower.y, upper.y);
-    return c;
-}
-pub inline fn vec2Length(v: Vec2) f32 {
-    return @sqrt((v.x * v.x) + (v.y * v.y));
-}
-pub inline fn lengthSquared(v: Vec2) f32 {
-    return (v.x * v.x) + (v.y * v.y);
-}
-pub inline fn distance(a: Vec2, b: Vec2) f32 {
-    const dx: f32 = b.x - a.x;
-    const dy: f32 = b.y - a.y;
-    return @sqrt((dx * dx) + (dy * dy));
-}
-pub inline fn distanceSquared(a: Vec2, b: Vec2) f32 {
-    const c: Vec2 = Vec2{
-        .x = b.x - a.x,
-        .y = b.y - a.y,
-    };
-    return (c.x * c.x) + (c.y * c.y);
-}
-pub inline fn makeRot(angle: f32) Rot {
-    const q: Rot = Rot{
-        .c = @cos(angle),
-        .s = @sin(angle),
-    };
-    return q;
-}
-pub inline fn normalizeRot(q: Rot) Rot {
-    const mag: f32 = @sqrt((q.s * q.s) + (q.c * q.c));
-    const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
-    const qn: Rot = Rot{
-        .c = q.c * invMag,
-        .s = q.s * invMag,
-    };
-    return qn;
-}
-pub inline fn isNormalized(q: Rot) bool {
-    const qq: f32 = (q.s * q.s) + (q.c * q.c);
-    return ((1.0 - 0.0006000000284984708) < qq) and (qq < (1.0 + 0.0006000000284984708));
-}
-pub inline fn nLerp(q1: Rot, q2: Rot, t: f32) Rot {
-    const omt: f32 = 1.0 - t;
-    const q: Rot = Rot{
-        .c = (omt * q1.c) + (t * q2.c),
-        .s = (omt * q1.s) + (t * q2.s),
-    };
-    return normalizeRot(q);
-}
-pub inline fn integrateRotation(q1: Rot, deltaAngle: f32) Rot {
-    const q2: Rot = Rot{
-        .c = q1.c - (deltaAngle * q1.s),
-        .s = q1.s + (deltaAngle * q1.c),
-    };
-    const mag: f32 = @sqrt((q2.s * q2.s) + (q2.c * q2.c));
-    const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
-    const qn: Rot = Rot{
-        .c = q2.c * invMag,
-        .s = q2.s * invMag,
-    };
-    return qn;
-}
-pub inline fn computeAngularVelocity(q1: Rot, q2: Rot, inv_h: f32) f32 {
-    const omega: f32 = inv_h * ((q2.s * q1.c) - (q2.c * q1.s));
-    return omega;
-}
-pub inline fn rotGetAngle(q: Rot) f32 {
-    // TODO: verify Y and X weren't accudentally swapped
-    return std.math.atan2(q.s, q.c);
-}
-pub inline fn rotGetXAxis(q: Rot) Vec2 {
-    const v: Vec2 = Vec2{
-        .x = q.c,
-        .y = q.s,
-    };
-    return v;
-}
-pub inline fn rotGetYAxis(q: Rot) Vec2 {
-    const v: Vec2 = Vec2{
-        .x = -q.s,
-        .y = q.c,
-    };
-    return v;
-}
-pub inline fn mulRot(q: Rot, r: Rot) Rot {
-    var qr: Rot = undefined;
-    qr.s = (q.s * r.c) + (q.c * r.s);
-    qr.c = (q.c * r.c) - (q.s * r.s);
-    return qr;
-}
-pub inline fn invMulRot(q: Rot, r: Rot) Rot {
-    var qr: Rot = undefined;
-    qr.s = (q.c * r.s) - (q.s * r.c);
-    qr.c = (q.c * r.c) + (q.s * r.s);
-    return qr;
-}
-pub inline fn relativeAngle(b: Rot, a: Rot) f32 {
-    const s: f32 = (b.s * a.c) - (b.c * a.s);
-    const c: f32 = (b.c * a.c) + (b.s * a.s);
-    return std.math.atan2(s, c);
-}
 pub inline fn unwindAngle(angle: f32) f32 {
-    if (angle < -3.1415927410125732) {
-        return angle + (2.0 * 3.1415927410125732);
-    } else if (angle > 3.1415927410125732) {
-        return angle - (2.0 * 3.1415927410125732);
+    if (angle < -std.math.pi) {
+        return angle + (2.0 * std.math.pi);
+    } else if (angle > std.math.pi) {
+        return angle - (2.0 * std.math.pi);
     }
     return angle;
-}
-pub inline fn rotateVector(q: Rot, v: Vec2) Vec2 {
-    return Vec2{
-        .x = (q.c * v.x) - (q.s * v.y),
-        .y = (q.s * v.x) + (q.c * v.y),
-    };
-}
-pub inline fn invRotateVector(q: Rot, v: Vec2) Vec2 {
-    return Vec2{
-        .x = (q.c * v.x) + (q.s * v.y),
-        .y = (-q.s * v.x) + (q.c * v.y),
-    };
-}
-pub inline fn transformPoint(xf: Transform, p: Vec2) Vec2 {
-    const x: f32 = ((xf.q.c * p.x) - (xf.q.s * p.y)) + xf.p.x;
-    const y: f32 = ((xf.q.s * p.x) + (xf.q.c * p.y)) + xf.p.y;
-    return Vec2{
-        .x = x,
-        .y = y,
-    };
-}
-pub inline fn invTransformPoint(xf: Transform, p: Vec2) Vec2 {
-    const vx: f32 = p.x - xf.p.x;
-    const vy: f32 = p.y - xf.p.y;
-    return Vec2{
-        .x = (xf.q.c * vx) + (xf.q.s * vy),
-        .y = (-xf.q.s * vx) + (xf.q.c * vy),
-    };
-}
-pub inline fn mulTransforms(A: Transform, B: Transform) Transform {
-    var C: Transform = undefined;
-    C.q = mulRot(A.q, B.q);
-    C.p = add(rotateVector(A.q, B.p), A.p);
-    return C;
-}
-pub inline fn invMulTransforms(A: Transform, B: Transform) Transform {
-    var C: Transform = undefined;
-    C.q = invMulRot(A.q, B.q);
-    C.p = invRotateVector(A.q, sub(B.p, A.p));
-    return C;
-}
-pub inline fn mulMV(A: Mat22, v: Vec2) Vec2 {
-    const u: Vec2 = Vec2{
-        .x = (A.cx.x * v.x) + (A.cy.x * v.y),
-        .y = (A.cx.y * v.x) + (A.cy.y * v.y),
-    };
-    return u;
-}
-pub inline fn getInverse22(A: Mat22) Mat22 {
-    const a: f32 = A.cx.x;
-    const b: f32 = A.cy.x;
-    const c: f32 = A.cx.y;
-    const d: f32 = A.cy.y;
-    const det: f32 = (a * d) - (b * c);
-    if (det != 0.0) {
-        det = 1.0 / det;
-    }
-    const B: Mat22 = Mat22{
-        .cx = Vec2{
-            .x = det * d,
-            .y = -det * c,
-        },
-        .cy = Vec2{
-            .x = -det * b,
-            .y = det * a,
-        },
-    };
-    return B;
-}
-pub inline fn solve22(A: Mat22, b: Vec2) Vec2 {
-    const a11: f32 = A.cx.x;
-    const a12: f32 = A.cy.x;
-    const a21: f32 = A.cx.y;
-    const a22: f32 = A.cy.y;
-    const det: f32 = (a11 * a22) - (a12 * a21);
-    _ = &det;
-    if (det != 0.0) {
-        det = 1.0 / det;
-    }
-    const x: Vec2 = Vec2{
-        .x = det * ((a22 * b.x) - (a12 * b.y)),
-        .y = det * ((a11 * b.y) - (a21 * b.x)),
-    };
-    return x;
 }
 pub inline fn AABBContains(a: AABB, b: AABB) bool {
     var s: bool = @as(c_int, 1) != 0;
@@ -1666,10 +1668,6 @@ pub inline fn AABB_Union(a: AABB, b: AABB) AABB {
 
 pub inline fn vec2IsValid(v: Vec2) bool {
     return native.b2Vec2_IsValid(v);
-}
-
-pub inline fn rotIsValid(q: Rot) bool {
-    return native.b2Rot_IsValid(q);
 }
 
 pub inline fn AABB_IsValid(aabb: AABB) bool {
@@ -1709,10 +1707,17 @@ pub inline fn yield() void {
 }
 
 // This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
-fn refAllDeclsExceptNative(T: type) void {
-    inline for (comptime std.meta.declarations(T)) |decl| {
-        if (!std.mem.eql(u8, decl.name, "native")) {
-            _ = &@field(T, decl.name);
+fn recursivelyRefAllDeclsExceptNative(T: type) void {
+    @setEvalBranchQuota(10000);
+    if (@typeInfo(T) == .Struct) {
+        inline for (comptime std.meta.declarations(T)) |decl| {
+            // when in doubt, just put 'comptime' in front of literally everything.
+            // Because the Zig compiler will annoyingly delay anything it can to runtime, for some reason.
+            if (comptime !std.mem.eql(u8, decl.name, "native")) {
+                const d = @field(T, decl.name);
+                _ = &d;
+                if (@TypeOf(d) == type) recursivelyRefAllDeclsExceptNative(d);
+            }
         }
     }
 }
@@ -1721,7 +1726,6 @@ fn refAllDeclsExceptNative(T: type) void {
 // It is essentially a copy of test/test_math.c
 // Box2D itself is well tested. Seeing as this binding is quite simple, I don't think it needs extensive unit testing beyond this.
 test "MathTest" {
-    refAllDeclsExceptNative(@This());
     const zero = native.b2Vec2_zero;
     const one = native.b2Vec2{ .x = 1.0, .y = 1.0 };
     const two = native.b2Vec2{ .x = 2.0, .y = 2.0 };
@@ -1755,6 +1759,7 @@ test "MathTest" {
 
 // This test invokes ABI compatibility checks, so ABI incompatibilities are caught before they cause memory errors.
 test "abiCompat" {
+    recursivelyRefAllDeclsExceptNative(@This());
     // Things that need to be verified here: structs, function pointers, enums
     // Everything else will be automatically verified by the compiler
     // Here are the structs
@@ -1809,7 +1814,6 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(ShapeCastInput, native.b2ShapeCastInput));
     try std.testing.expect(structsAreABICompatible(Hull, native.b2Hull));
     try std.testing.expect(structsAreABICompatible(Timer, native.b2Timer));
-    try std.testing.expect(structsAreABICompatible(Mat22, native.b2Mat22));
     // TODO: and the function pointers
     // TODO: and the enums
 }
@@ -1818,19 +1822,19 @@ fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
     const aInfo = @typeInfo(A);
     const bInfo = @typeInfo(B);
     // Lol who cares about things that aren't structs
-    if(aInfo != .Struct) return false;
-    if(bInfo != .Struct) return false;
+    if (aInfo != .Struct) return false;
+    if (bInfo != .Struct) return false;
     // Make sure they have the same layout and that layout is ABI stable
-    if(aInfo.Struct.layout == .auto) return false;
-    if(aInfo.Struct.layout != bInfo.Struct.layout) return false;
-    
-    if(aInfo.Struct.fields.len != bInfo.Struct.fields.len) return false;
-    inline for(aInfo.Struct.fields, 0..) |aField, i| {
+    if (aInfo.Struct.layout == .auto) return false;
+    if (aInfo.Struct.layout != bInfo.Struct.layout) return false;
+
+    if (aInfo.Struct.fields.len != bInfo.Struct.fields.len) return false;
+    inline for (aInfo.Struct.fields, 0..) |aField, i| {
         // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
         const bField = bInfo.Struct.fields[i];
         // this *could* do a recursive ABI check on the fields.
         // However, that would be a lot of work, so just check that the sizes match and call it a day
-        if(@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
+        if (@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
     }
     // None of the checks failed, so assume they are compatible at this point
     return true;
