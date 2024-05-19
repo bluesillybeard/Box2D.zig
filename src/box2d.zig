@@ -69,123 +69,123 @@ pub const ShapeId = native.b2ShapeId;
 
 pub const WorldId = extern struct {
     pub inline fn create(def: WorldDef) WorldId {
-        return native.b2CreateWorld(&def);
+        return @bitCast(native.b2CreateWorld(@ptrCast(&def)));
     }
 
     pub inline fn destroy(worldId: WorldId) void {
-        native.b2DestroyWorld(worldId);
+        native.b2DestroyWorld(@bitCast(worldId));
     }
 
     pub inline fn isValid(id: WorldId) bool {
-        return native.b2World_IsValid(id);
+        return @bitCast(native.b2World_IsValid(@bitCast(id)));
     }
 
     pub inline fn step(worldId: WorldId, timeStep: f32, subStepCount: u32) void {
-        native.b2World_Step(worldId, timeStep, @intCast(subStepCount));
+        native.b2World_Step(@bitCast(worldId), timeStep, @intCast(subStepCount));
     }
 
     pub inline fn draw(worldId: WorldId, dbgDraw: *DebugDraw) void {
-        native.b2World_Draw(worldId, dbgDraw);
+        native.b2World_Draw(@bitCast(worldId), @ptrCast(dbgDraw));
     }
 
     pub inline fn getBodyEvents(worldId: WorldId) BodyEvents {
-        return native.b2World_GetBodyEvents(worldId);
+        return @bitCast(native.b2World_GetBodyEvents(@bitCast(worldId)));
     }
 
     pub inline fn getSensorEvents(worldId: WorldId) SensorEvents {
-        return native.b2World_GetSensorEvents(worldId);
+        return @bitCast(native.b2World_GetSensorEvents(@bitCast(worldId)));
     }
 
     pub inline fn getContactEvents(worldId: WorldId) ContactEvents {
-        return native.b2World_GetContactEvents(worldId);
+        return @bitCast(native.b2World_GetContactEvents(@bitCast(worldId)));
     }
 
     pub inline fn overlapAABB(worldId: WorldId, aabb: AABB, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapAABB(worldId, aabb, filter, overlapFn, context);
+        native.b2World_OverlapAABB(@bitCast(worldId), @bitCast(aabb), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
     }
 
     pub inline fn overlapCircle(worldId: WorldId, circle: Circle, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapCircle(worldId, &circle, transform, filter, overlapFn, context);
+        native.b2World_OverlapCircle(@bitCast(worldId), @ptrCast(&circle), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
     }
 
     pub inline fn overlapCapsule(worldId: WorldId, capsule: Capsule, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapCapsule(worldId, &capsule, transform, filter, overlapFn, context);
+        native.b2World_OverlapCapsule(@bitCast(worldId), @ptrCast(&capsule), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
     }
 
     pub inline fn overlapPolygon(worldId: WorldId, polygon: Polygon, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapPolygon(worldId, &polygon, transform, filter, overlapFn, context);
+        native.b2World_OverlapPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
     }
 
     pub inline fn rayCast(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_RayCast(worldId, origin, translation, filter, castFn, context);
+        native.b2World_RayCast(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
     pub inline fn rayCastClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
-        return native.b2World_RayCastClosest(worldId, origin, translation, filter);
+        return @bitCast(native.b2World_RayCastClosest(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter)));
     }
 
     pub inline fn circleCast(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CircleCast(worldId, &circle, originTransform, translation, filter, castFn, context);
+        native.b2World_CircleCast(@bitCast(worldId), @ptrCast(&circle), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
     pub inline fn capsuleCast(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CapsuleCast(worldId, &capsule, originTransform, translation, filter, castFn, context);
+        native.b2World_CapsuleCast(@bitCast(worldId), @ptrCast(&capsule), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
     pub inline fn polygonCast(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_PolygonCast(worldId, &polygon, originTransform, translation, filter, castFn, context);
+        native.b2World_PolygonCast(@bitCast(worldId), @ptrCast(&polygon), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
     pub inline fn enableSleeping(worldId: WorldId, flag: bool) void {
-        native.b2World_EnableSleeping(worldId, flag);
+        native.b2World_EnableSleeping(@bitCast(worldId), flag);
     }
 
     pub inline fn enableWarmStarting(worldId: WorldId, flag: bool) void {
-        native.b2World_EnableWarmStarting(worldId, flag);
+        native.b2World_EnableWarmStarting(@bitCast(worldId), flag);
     }
 
     pub inline fn enableContinuous(worldId: WorldId, flag: bool) void {
-        native.b2World_EnableContinuous(worldId, flag);
+        native.b2World_EnableContinuous(@bitCast(worldId), flag);
     }
 
     pub inline fn setRestitutionThreshold(worldId: WorldId, value: f32) void {
-        native.b2World_SetRestitutionThreshold(worldId, value);
+        native.b2World_SetRestitutionThreshold(@bitCast(worldId), value);
     }
 
     pub inline fn setHitEventThreshold(worldId: WorldId, value: f32) void {
-        native.b2World_SetHitEventThreshold(worldId, value);
+        native.b2World_SetHitEventThreshold(@bitCast(worldId), value);
     }
 
     pub inline fn setPreSolveCallback(worldId: WorldId, preSolveFn: ?*PreSolveFn, context: ?*anyopaque) void {
-        native.b2World_SetPreSolveCallback(worldId, preSolveFn, context);
+        native.b2World_SetPreSolveCallback(@bitCast(worldId), @ptrCast(preSolveFn), @ptrCast(context));
     }
 
     pub inline fn setGravity(worldId: WorldId, gravity: Vec2) void {
-        native.b2World_SetGravity(worldId, gravity);
+        native.b2World_SetGravity(@bitCast(worldId), @bitCast(gravity));
     }
 
     pub inline fn getGravity(worldId: WorldId) Vec2 {
-        return native.b2World_GetGravity(worldId);
+        return @bitCast(native.b2World_GetGravity(@bitCast(worldId)));
     }
 
     pub inline fn explode(worldId: WorldId, position: Vec2, radius: f32, impulse: f32) void {
-        native.b2World_Explode(worldId, position, radius, impulse);
+        native.b2World_Explode(@bitCast(worldId), @bitCast(position), radius, impulse);
     }
 
     pub inline fn setContactTuning(worldId: WorldId, hertz: f32, dampingRatio: f32, pushVelocity: f32) void {
-        native.b2World_SetContactTuning(worldId, hertz, dampingRatio, pushVelocity);
+        native.b2World_SetContactTuning(@bitCast(worldId), hertz, dampingRatio, pushVelocity);
     }
 
     pub inline fn getProfile(worldId: WorldId) Profile {
-        return native.b2World_GetProfile(worldId);
+        return @bitCast(native.b2World_GetProfile(@bitCast(worldId)));
     }
 
     pub inline fn getCounters(worldId: WorldId) Counters {
-        return native.b2World_GetCounters(worldId);
+        return @bitCast(native.b2World_GetCounters(@bitCast(worldId)));
     }
 
     pub inline fn dumpMemoryStats(worldId: WorldId) void {
-        native.b2World_DumpMemoryStats(worldId);
+        native.b2World_DumpMemoryStats(@bitCast(worldId));
     }
 
     index1: u16,
@@ -390,232 +390,232 @@ pub const Vec2 = extern struct {
     y: f32,
 };
 pub const BodyId = extern struct {
-    pub inline fn create(worldId: WorldId, def: *const BodyDef) BodyId {
-        return native.b2CreateBody(worldId, def);
+    pub inline fn create(worldId: WorldId, def: BodyDef) BodyId {
+        return @bitCast(native.b2CreateBody(@bitCast(worldId), @ptrCast(&def)));
     }
 
     pub inline fn destroy(bodyId: BodyId) void {
-        return native.b2DestroyBody(bodyId);
+        return native.b2DestroyBody(@bitCast(bodyId));
     }
 
     pub inline fn isValid(id: BodyId) bool {
-        return native.b2Body_IsValid(id);
+        return native.b2Body_IsValid(@bitCast(id));
     }
 
     pub inline fn getType(bodyId: BodyId) BodyType {
-        return native.b2Body_GetType(bodyId);
+        return @bitCast(native.b2Body_GetType(@bitCast(bodyId)));
     }
 
     pub inline fn setType(bodyId: BodyId, @"type": BodyType) void {
-        native.b2Body_SetType(bodyId, @"type");
+        native.b2Body_SetType(@bitCast(bodyId), @bitCast(@"type"));
     }
 
     pub inline fn setUserData(bodyId: BodyId, userData: ?*anyopaque) void {
-        native.b2Body_SetUserData(bodyId, userData);
+        native.b2Body_SetUserData(@bitCast(bodyId), @ptrCast(userData));
     }
 
     pub inline fn getUserData(bodyId: BodyId) ?*anyopaque {
-        return native.b2Body_GetUserData(bodyId);
+        return @ptrCast(native.b2Body_GetUserData(@bitCast(bodyId)));
     }
 
     pub inline fn getPosition(bodyId: BodyId) Vec2 {
-        return native.b2Body_GetPosition(bodyId);
+        return @bitCast(native.b2Body_GetPosition(@bitCast(bodyId)));
     }
 
     pub inline fn getRotation(bodyId: BodyId) Rot {
-        return native.b2Body_GetRotation(bodyId);
+        return @bitCast(native.b2Body_GetRotation(@bitCast(bodyId)));
     }
 
     pub inline fn getAngle(bodyId: BodyId) f32 {
-        return native.b2Body_GetAngle(bodyId);
+        return native.b2Body_GetAngle(@bitCast(bodyId));
     }
 
     pub inline fn getTransform(bodyId: BodyId) Transform {
-        return native.b2Body_GetTransform(bodyId);
+        return @bitCast(native.b2Body_GetTransform(@bitCast(bodyId)));
     }
 
     pub inline fn setTransform(bodyId: BodyId, position: Vec2, angle: f32) void {
-        native.b2Body_SetTransform(bodyId, position, angle);
+        native.b2Body_SetTransform(@bitCast(bodyId), @bitCast(position), angle);
     }
 
     pub inline fn getLocalPoint(bodyId: BodyId, worldPoint: Vec2) Vec2 {
-        return native.b2Body_GetLocalPoint(bodyId, worldPoint);
+        return @bitCast(native.b2Body_GetLocalPoint(@bitCast(bodyId), @bitCast(worldPoint)));
     }
 
     pub inline fn getWorldPoint(bodyId: BodyId, localPoint: Vec2) Vec2 {
-        return native.b2Body_GetWorldPoint(bodyId, localPoint);
+        return @bitCast(native.b2Body_GetWorldPoint(@bitCast(bodyId), @bitCast(localPoint)));
     }
 
     pub inline fn getLocalVector(bodyId: BodyId, worldVector: Vec2) Vec2 {
-        return native.b2Body_GetLocalVector(bodyId, worldVector);
+        return @bitCast(native.b2Body_GetLocalVector(@bitCast(bodyId), @bitCast(worldVector)));
     }
 
     pub inline fn getWorldVector(bodyId: BodyId, localVector: Vec2) Vec2 {
-        return native.b2Body_GetWorldVector(bodyId, localVector);
+        return @bitCast(native.b2Body_GetWorldVector(@bitCast(bodyId), @bitCast(localVector)));
     }
 
     pub inline fn getLinearVelocity(bodyId: BodyId) Vec2 {
-        return native.b2Body_GetLinearVelocity(bodyId);
+        return @bitCast(native.b2Body_GetLinearVelocity(@bitCast(bodyId)));
     }
 
     pub inline fn getAngularVelocity(bodyId: BodyId) f32 {
-        return native.b2Body_GetAngularVelocity(bodyId);
+        return native.b2Body_GetAngularVelocity(@bitCast(bodyId));
     }
 
     pub inline fn setLinearVelocity(bodyId: BodyId, linearVelocity: Vec2) void {
-        native.b2Body_SetLinearVelocity(bodyId, linearVelocity);
+        native.b2Body_SetLinearVelocity(@bitCast(bodyId), @bitCast(linearVelocity));
     }
 
     pub inline fn setAngularVelocity(bodyId: BodyId, angularVelocity: f32) void {
-        native.b2Body_SetAngularVelocity(bodyId, angularVelocity);
+        native.b2Body_SetAngularVelocity(@bitCast(bodyId), @bitCast(angularVelocity));
     }
 
     pub inline fn applyForce(bodyId: BodyId, force: Vec2, point: Vec2, wake: bool) void {
-        native.b2Body_ApplyForce(bodyId, force, point, wake);
+        native.b2Body_ApplyForce(@bitCast(bodyId), @bitCast(force), @bitCast(point), wake);
     }
 
     pub inline fn applyForceToCenter(bodyId: BodyId, force: Vec2, wake: bool) void {
-        native.b2Body_ApplyForceToCenter(bodyId, force, wake);
+        native.b2Body_ApplyForceToCenter(@bitCast(bodyId), @bitCast(force), wake);
     }
 
     pub inline fn applyTorque(bodyId: BodyId, torque: f32, wake: bool) void {
-        native.b2Body_ApplyTorque(bodyId, torque, wake);
+        native.b2Body_ApplyTorque(@bitCast(bodyId), @bitCast(torque), @bitCast(wake));
     }
 
     pub inline fn applyLinearImpulse(bodyId: BodyId, impulse: Vec2, point: Vec2, wake: bool) void {
-        native.b2Body_ApplyLinearImpulse(bodyId, impulse, point, wake);
+        native.b2Body_ApplyLinearImpulse(@bitCast(bodyId), @bitCast(impulse), @bitCast(point), @bitCast(wake));
     }
 
     pub inline fn applyLinearImpulseToCenter(bodyId: BodyId, impulse: Vec2, wake: bool) void {
-        native.b2Body_ApplyLinearImpulseToCenter(bodyId, impulse, wake);
+        native.b2Body_ApplyLinearImpulseToCenter(@bitCast(bodyId), @bitCast(impulse), wake);
     }
 
     pub inline fn applyAngularImpulse(bodyId: BodyId, impulse: f32, wake: bool) void {
-        native.b2Body_ApplyAngularImpulse(bodyId, impulse, wake);
+        native.b2Body_ApplyAngularImpulse(@bitCast(bodyId), @bitCast(impulse), wake);
     }
 
     pub inline fn getMass(bodyId: BodyId) f32 {
-        return native.b2Body_GetMass(bodyId);
+        return native.b2Body_GetMass(@bitCast(bodyId));
     }
 
     pub inline fn getInertiaTensor(bodyId: BodyId) f32 {
-        return native.b2Body_GetInertiaTensor(bodyId);
+        return native.b2Body_GetInertiaTensor(@bitCast(bodyId));
     }
 
     pub inline fn getLocalCenterOfMass(bodyId: BodyId) Vec2 {
-        return native.b2Body_GetLocalCenterOfMass(bodyId);
+        return @bitCast(native.b2Body_GetLocalCenterOfMass(@bitCast(bodyId)));
     }
 
     pub inline fn getWorldCenterOfMass(bodyId: BodyId) Vec2 {
-        return native.b2Body_GetWorldCenterOfMass(bodyId);
+        return @bitCast(native.b2Body_GetWorldCenterOfMass(@bitCast(bodyId)));
     }
 
     pub inline fn setMassData(bodyId: BodyId, massData: MassData) void {
-        native.b2Body_SetMassData(bodyId, massData);
+        native.b2Body_SetMassData(@bitCast(bodyId), @bitCast(massData));
     }
 
     pub inline fn getMassData(bodyId: BodyId) MassData {
-        return native.b2Body_GetMassData(bodyId);
+        return @bitCast(native.b2Body_GetMassData(@bitCast(bodyId)));
     }
 
     pub inline fn applyMassFromShapes(bodyId: BodyId) void {
-        native.b2Body_ApplyMassFromShapes(bodyId);
+        native.b2Body_ApplyMassFromShapes(@bitCast(bodyId));
     }
 
     pub inline fn setAutomaticMass(bodyId: BodyId, automaticMass: bool) void {
-        native.b2Body_SetAutomaticMass(bodyId, automaticMass);
+        native.b2Body_SetAutomaticMass(@bitCast(bodyId), automaticMass);
     }
 
     pub inline fn getAutomaticMass(bodyId: BodyId) bool {
-        return native.b2Body_GetAutomaticMass(bodyId);
+        return native.b2Body_GetAutomaticMass(@bitCast(bodyId));
     }
 
     pub inline fn setLinearDamping(bodyId: BodyId, linearDamping: f32) void {
-        native.b2Body_SetLinearDamping(bodyId, linearDamping);
+        native.b2Body_SetLinearDamping(@bitCast(bodyId), linearDamping);
     }
 
     pub inline fn getLinearDamping(bodyId: BodyId) f32 {
-        return native.b2Body_GetLinearDamping(bodyId);
+        return native.b2Body_GetLinearDamping(@bitCast(bodyId));
     }
 
     pub inline fn setAngularDamping(bodyId: BodyId, angularDamping: f32) void {
-        native.b2Body_SetAngularDamping(bodyId, angularDamping);
+        native.b2Body_SetAngularDamping(@bitCast(bodyId), angularDamping);
     }
 
     pub inline fn getAngularDamping(bodyId: BodyId) f32 {
-        return native.b2Body_GetAngularDamping(bodyId);
+        return native.b2Body_GetAngularDamping(@bitCast(bodyId));
     }
 
     pub inline fn setGravityScale(bodyId: BodyId, gravityScale: f32) void {
-        native.b2Body_SetGravityScale(bodyId, gravityScale);
+        native.b2Body_SetGravityScale(@bitCast(bodyId), gravityScale);
     }
 
     pub inline fn getGravityScale(bodyId: BodyId) f32 {
-        return native.b2Body_GetGravityScale(bodyId);
+        return native.b2Body_GetGravityScale(@bitCast(bodyId));
     }
 
     pub inline fn isAwake(bodyId: BodyId) bool {
-        return native.b2Body_IsAwake(bodyId);
+        return native.b2Body_IsAwake(@bitCast(bodyId));
     }
 
     pub inline fn setAwake(bodyId: BodyId, awake: bool) void {
-        native.b2Body_SetAwake(bodyId, awake);
+        native.b2Body_SetAwake(@bitCast(bodyId), awake);
     }
 
     pub inline fn enableSleep(bodyId: BodyId, _enableSleep: bool) void {
-        native.b2Body_EnableSleep(bodyId, _enableSleep);
+        native.b2Body_EnableSleep(@bitCast(bodyId), _enableSleep);
     }
 
     pub inline fn isSleepEnabled(bodyId: BodyId) bool {
-        return native.b2Body_IsSleepEnabled(bodyId);
+        return native.b2Body_IsSleepEnabled(@bitCast(bodyId));
     }
 
     pub inline fn setSleepThreshold(bodyId: BodyId, sleepVelocity: f32) void {
-        native.b2Body_SetSleepThreshold(bodyId, sleepVelocity);
+        native.b2Body_SetSleepThreshold(@bitCast(bodyId), sleepVelocity);
     }
 
     pub inline fn getSleepThreshold(bodyId: BodyId) f32 {
-        return native.b2Body_GetSleepThreshold(bodyId);
+        return native.b2Body_GetSleepThreshold(@bitCast(bodyId));
     }
 
     pub inline fn isEnabled(bodyId: BodyId) bool {
-        return native.b2Body_IsEnabled(bodyId);
+        return native.b2Body_IsEnabled(@bitCast(bodyId));
     }
 
     pub inline fn disable(bodyId: BodyId) void {
-        native.b2Body_Disable(bodyId);
+        native.b2Body_Disable(@bitCast(bodyId));
     }
 
     pub inline fn enable(bodyId: BodyId) void {
-        native.b2Body_Enable(bodyId);
+        native.b2Body_Enable(@bitCast(bodyId));
     }
 
     pub inline fn setFixedRotation(bodyId: BodyId, flag: bool) void {
-        native.b2Body_SetFixedRotation(bodyId, flag);
+        native.b2Body_SetFixedRotation(@bitCast(bodyId), flag);
     }
 
     pub inline fn isFixedRotation(bodyId: BodyId) bool {
-        return native.b2Body_IsFixedRotation(bodyId);
+        return native.b2Body_IsFixedRotation(@bitCast(bodyId));
     }
 
     pub inline fn setBullet(bodyId: BodyId, flag: bool) void {
-        native.b2Body_SetBullet(bodyId, flag);
+        native.b2Body_SetBullet(@bitCast(bodyId), flag);
     }
 
     pub inline fn isBullet(bodyId: BodyId) bool {
-        return native.b2Body_IsBullet(bodyId);
+        return native.b2Body_IsBullet(@bitCast(bodyId));
     }
 
     pub inline fn enableHitEvents(bodyId: BodyId, _enableHitEvents: bool) void {
-        native.b2Body_EnableHitEvents(bodyId, _enableHitEvents);
+        native.b2Body_EnableHitEvents(@bitCast(bodyId), _enableHitEvents);
     }
 
     pub inline fn getShapeCount(bodyId: BodyId) usize {
-        return @intCast(native.b2Body_GetShapeCount(bodyId));
+        return @intCast(native.b2Body_GetShapeCount(@bitCast(bodyId)));
     }
 
     pub inline fn getShapes(bodyId: BodyId, shapes: []ShapeId) usize {
-        return @intCast(native.b2Body_GetShapes(bodyId, shapes.ptr, @intCast(shapes.len)));
+        return @intCast(native.b2Body_GetShapes(@bitCast(bodyId), @ptrCast(shapes.ptr), @intCast(shapes.len)));
     }
 
     pub inline fn getJointCount(bodyId: BodyId) usize {
@@ -623,19 +623,19 @@ pub const BodyId = extern struct {
     }
 
     pub inline fn getJoints(bodyId: BodyId, joints: []JointId) usize {
-        return @intCast(native.b2Body_GetJoints(bodyId, joints.ptr, @intCast(joints.len)));
+        return @intCast(native.b2Body_GetJoints(@bitCast(bodyId), @ptrCast(joints.ptr), @intCast(joints.len)));
     }
 
     pub inline fn getContactCapacity(bodyId: BodyId) usize {
-        return @intCast(native.b2Body_GetContactCapacity(bodyId));
+        return @intCast(native.b2Body_GetContactCapacity(@bitCast(bodyId)));
     }
 
     pub inline fn getContactData(bodyId: BodyId, contacts: []ContactData) usize {
-        return @intCast(native.b2Body_GetContactData(bodyId, contacts.ptr, @intCast(contacts.len)));
+        return @intCast(native.b2Body_GetContactData(@bitCast(bodyId), @ptrCast(contacts.ptr), @intCast(contacts.len)));
     }
 
     pub inline fn computeAABB(bodyId: BodyId) AABB {
-        return native.b2Body_ComputeAABB(bodyId);
+        return @bitCast(native.b2Body_ComputeAABB(@bitCast(bodyId)));
     }
 
     index1: i32,
@@ -783,711 +783,711 @@ pub inline fn GetByteCount() usize {
 // Functions that have not been translated
 
 pub inline fn SetAllocator(alloc: *AllocFn, free: *FreeFn) void {
-    native.b2SetAllocator(&alloc, &free);
+    native.b2SetAllocator(@ptrCast(&alloc), @ptrCast(&free));
 }
 
 pub inline fn SetAssertFn(assertFn: *AssertFn) void {
-    native.b2SetAssertFcn(assertFn);
+    native.b2SetAssertFcn(@ptrCast(assertFn));
 }
 
 pub inline fn createCircleShape(bodyId: BodyId, def: ShapeDef, circle: Circle) ShapeId {
-    return native.b2CreateCircleShape(bodyId, &def, &circle);
+    return @bitCast(native.b2CreateCircleShape(@bitCast(bodyId), @ptrCast(&def), @ptrCast(&circle)));
 }
 
 pub inline fn createSegmentShape(bodyId: BodyId, def: ShapeDef, segment: Segment) ShapeId {
-    return native.b2CreateSegmentShape(bodyId, &def, &segment);
+    return @bitCast(native.b2CreateSegmentShape(@bitCast(bodyId), @ptrCast(&def), @ptrCast(&segment)));
 }
 
 pub inline fn createCapsuleShape(bodyId: BodyId, def: ShapeDef, capsule: Capsule) ShapeId {
-    return native.b2CreateCapsuleShape(bodyId, &def, &capsule);
+    return @bitCast(native.b2CreateCapsuleShape(@bitCast(bodyId), @ptrCast(&def), @ptrCast(&capsule)));
 }
 
 pub inline fn createPolygonShape(bodyId: BodyId, def: ShapeDef, polygon: Polygon) ShapeId {
-    return native.b2CreatePolygonShape(bodyId, &def, &polygon);
+    return @bitCast(native.b2CreatePolygonShape(@bitCast(bodyId), @ptrCast(&def), @ptrCast(&polygon)));
 }
 
 pub inline fn destroyShape(shapeId: ShapeId) void {
-    native.b2DestroyShape(shapeId);
+    native.b2DestroyShape(@bitCast(shapeId));
 }
 
 pub inline fn shapeIsValid(id: ShapeId) bool {
-    return native.b2Shape_IsValid(id);
+    return native.b2Shape_IsValid(@bitCast(id));
 }
 
 pub inline fn shapeGetType(shapeId: ShapeId) ShapeType {
-    return native.b2Shape_GetType(shapeId);
+    return @bitCast(native.b2Shape_GetType(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetBody(shapeId: ShapeId) BodyId {
-    return native.b2Shape_GetBody(shapeId);
+    return @bitCast(native.b2Shape_GetBody(@bitCast(shapeId)));
 }
 
 pub inline fn shapeIsSensor(shapeId: ShapeId) bool {
-    return native.b2Shape_IsSensor(shapeId);
+    return native.b2Shape_IsSensor(@bitCast(shapeId));
 }
 
 pub inline fn shapeSetUserData(shapeId: ShapeId, userData: ?*anyopaque) void {
-    native.b2Shape_SetUserData(shapeId, userData);
+    native.b2Shape_SetUserData(@bitCast(shapeId), @ptrCast(userData));
 }
 
 pub inline fn shapeGetUserData(shapeId: ShapeId) ?*anyopaque {
-    return native.b2Shape_GetUserData(shapeId);
+    return @ptrCast(native.b2Shape_GetUserData(@bitCast(shapeId)));
 }
 
 pub inline fn shapeSetDensity(shapeId: ShapeId, density: f32) void {
-    native.b2Shape_SetDensity(shapeId, density);
+    native.b2Shape_SetDensity(@bitCast(shapeId), density);
 }
 
 pub inline fn shapeGetDensity(shapeId: ShapeId) f32 {
-    return native.b2Shape_GetDensity(shapeId);
+    return native.b2Shape_GetDensity(@bitCast(shapeId));
 }
 
 pub inline fn shapeSetFriction(shapeId: ShapeId, friction: f32) void {
-    native.b2Shape_SetFriction(shapeId, friction);
+    native.b2Shape_SetFriction(@bitCast(shapeId), friction);
 }
 
 pub inline fn shapeGetFriction(shapeId: ShapeId) f32 {
-    return native.b2Shape_GetFriction(shapeId);
+    return native.b2Shape_GetFriction(@bitCast(shapeId));
 }
 
 pub inline fn shapeSetRestitution(shapeId: ShapeId, restitution: f32) void {
-    native.b2Shape_SetRestitution(shapeId, restitution);
+    native.b2Shape_SetRestitution(@bitCast(shapeId), restitution);
 }
 
 pub inline fn shapeGetRestitution(shapeId: ShapeId) f32 {
-    return native.b2Shape_GetRestitution(shapeId);
+    return native.b2Shape_GetRestitution(@bitCast(shapeId));
 }
 
 pub inline fn shapeGetFilter(shapeId: ShapeId) Filter {
-    return native.b2Shape_GetFilter(shapeId);
+    return @bitCast(native.b2Shape_GetFilter(@bitCast(shapeId)));
 }
 
 pub inline fn shapeSetFilter(shapeId: ShapeId, filter: Filter) void {
-    native.b2Shape_SetFilter(shapeId, filter);
+    native.b2Shape_SetFilter(@bitCast(shapeId), @bitCast(filter));
 }
 
 pub inline fn shapeEnableSensorEvents(shapeId: ShapeId, flag: bool) void {
-    native.b2Shape_EnableSensorEvents(shapeId, flag);
+    native.b2Shape_EnableSensorEvents(@bitCast(shapeId), flag);
 }
 
 pub inline fn shapeAreSensorEventsEnabled(shapeId: ShapeId) bool {
-    return native.b2Shape_AreSensorEventsEnabled(shapeId);
+    return native.b2Shape_AreSensorEventsEnabled(@bitCast(shapeId));
 }
 
 pub inline fn shapeEnableContactEvents(shapeId: ShapeId, flag: bool) void {
-    native.b2Shape_EnableContactEvents(shapeId, flag);
+    native.b2Shape_EnableContactEvents(@bitCast(shapeId), flag);
 }
 
 pub inline fn shapeAreContactEventsEnabled(shapeId: ShapeId) bool {
-    native.b2Shape_AreContactEventsEnabled(shapeId);
+    native.b2Shape_AreContactEventsEnabled(@bitCast(shapeId));
 }
 
 pub inline fn shapeEnablePreSolveEvents(shapeId: ShapeId, flag: bool) void {
-    native.b2Shape_EnablePreSolveEvents(shapeId, flag);
+    native.b2Shape_EnablePreSolveEvents(@bitCast(shapeId), flag);
 }
 
 pub inline fn shapeArePreSolveEventsEnabled(shapeId: ShapeId) bool {
-    return native.b2Shape_ArePreSolveEventsEnabled(shapeId);
+    return native.b2Shape_ArePreSolveEventsEnabled(@bitCast(shapeId));
 }
 
 pub inline fn shapeEnableHitEvents(shapeId: ShapeId, flag: bool) void {
-    native.b2Shape_EnableContactEvents(shapeId, flag);
+    native.b2Shape_EnableContactEvents(@bitCast(shapeId), flag);
 }
 
 pub inline fn shapeAreHitEventsEnabled(shapeId: ShapeId) bool {
-    return native.b2Shape_AreHitEventsEnabled(shapeId);
+    return native.b2Shape_AreHitEventsEnabled(@bitCast(shapeId));
 }
 
 pub inline fn shapeTestPoint(shapeId: ShapeId, point: Vec2) bool {
-    return native.b2Shape_TestPoint(shapeId, point);
+    return native.b2Shape_TestPoint(@bitCast(shapeId), @bitCast(point));
 }
 
 pub inline fn shapeRayCast(shapeId: ShapeId, origin: Vec2, translation: Vec2) CastOutput {
-    return native.b2Shape_RayCast(shapeId, origin, translation);
+    return @bitCast(native.b2Shape_RayCast(@bitCast(shapeId), @bitCast(origin), @bitCast(translation)));
 }
 
 pub inline fn shapeGetCircle(shapeId: ShapeId) Circle {
-    return native.b2Shape_GetCircle(shapeId);
+    return @bitCast(native.b2Shape_GetCircle(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetSegment(shapeId: ShapeId) Segment {
-    return native.b2Shape_GetSegment(shapeId);
+    return @bitCast(native.b2Shape_GetSegment(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetSmoothSegment(shapeId: ShapeId) SmoothSegment {
-    return native.b2Shape_GetSmoothSegment(shapeId);
+    return @bitCast(native.b2Shape_GetSmoothSegment(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetCapsule(shapeId: ShapeId) Capsule {
-    return native.b2Shape_GetCapsule(shapeId);
+    return @bitCast(native.b2Shape_GetCapsule(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetPolygon(shapeId: ShapeId) Polygon {
-    return native.b2Shape_GetPolygon(shapeId);
+    return @bitCast(native.b2Shape_GetPolygon(@bitCast(shapeId)));
 }
 
 pub inline fn shapeSetCircle(shapeId: ShapeId, circle: Circle) void {
-    native.b2Shape_SetCircle(shapeId, circle);
+    native.b2Shape_SetCircle(@bitCast(shapeId), @bitCast(circle));
 }
 
 pub inline fn shapeSetCapsule(shapeId: ShapeId, capsule: Capsule) void {
-    native.b2Shape_SetCapsule(shapeId, capsule);
+    native.b2Shape_SetCapsule(@bitCast(shapeId), @bitCast(capsule));
 }
 
 pub inline fn shapeSetSegment(shapeId: ShapeId, segment: Segment) void {
-    native.b2Shape_SetSegment(shapeId, segment);
+    native.b2Shape_SetSegment(@bitCast(shapeId), @bitCast(segment));
 }
 
 pub inline fn shapeSetPolygon(shapeId: ShapeId, polygon: Polygon) void {
-    native.b2Shape_SetPolygon(shapeId, polygon);
+    native.b2Shape_SetPolygon(@bitCast(shapeId), @bitCast(polygon));
 }
 
 pub inline fn shapeGetParentChain(shapeId: ShapeId) ChainId {
-    return native.b2Shape_GetParentChain(shapeId);
+    return @bitCast(native.b2Shape_GetParentChain(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetContactCapacity(shapeId: ShapeId) usize {
-    return @intCast(native.b2Shape_GetContactCapacity(shapeId));
+    return @intCast(native.b2Shape_GetContactCapacity(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetContactData(shapeId: ShapeId, contacts: []ContactData) usize {
-    return @intCast(native.b2Shape_GetContactData(shapeId, contacts.ptr, @intCast(contacts.len)));
+    return @intCast(native.b2Shape_GetContactData(@bitCast(shapeId), @ptrCast(contacts.ptr), @intCast(contacts.len)));
 }
 
 pub inline fn shapeGetAABB(shapeId: ShapeId) AABB {
-    return native.b2Shape_GetAABB(shapeId);
+    return @bitCast(native.b2Shape_GetAABB(@bitCast(shapeId)));
 }
 
 pub inline fn shapeGetClosestPoint(shapeId: ShapeId, target: Vec2) Vec2 {
-    return native.b2Shape_GetClosestPoint(shapeId, target);
+    return @bitCast(native.b2Shape_GetClosestPoint(@bitCast(shapeId), @bitCast(target)));
 }
 
 pub inline fn createChain(bodyId: BodyId, def: ChainDef) ChainId {
-    return native.b2CreateChain(bodyId, &def);
+    return @bitCast(native.b2CreateChain(@bitCast(bodyId), @ptrCast(&def)));
 }
 
 pub inline fn destroyChain(chainId: ChainId) void {
-    native.b2DestroyChain(chainId);
+    native.b2DestroyChain(@bitCast(chainId));
 }
 
 pub inline fn chainSetFriction(chainId: ChainId, friction: f32) void {
-    native.b2Chain_SetFriction(chainId, friction);
+    native.b2Chain_SetFriction(@bitCast(chainId), friction);
 }
 
 pub inline fn chainSetRestitution(chainId: ChainId, restitution: f32) void {
-    native.b2Chain_SetRestitution(chainId, restitution);
+    native.b2Chain_SetRestitution(@bitCast(chainId), restitution);
 }
 
 pub inline fn chainIsValid(id: ChainId) bool {
-    return native.b2Chain_IsValid(id);
+    return native.b2Chain_IsValid(@bitCast(id));
 }
 
 pub inline fn createDistanceJoint(worldId: WorldId, def: DistanceJointDef) JointId {
-    return native.b2CreateDistanceJoint(worldId, &def);
+    return @bitCast(native.b2CreateDistanceJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn createMotorJoint(worldId: WorldId, def: MotorJointDef) JointId {
-    return native.b2CreateMotorJoint(worldId, &def);
+    return @bitCast(native.b2CreateMotorJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn createMouseJoint(worldId: WorldId, def: MouseJointDef) JointId {
-    return native.b2CreateMouseJoint(worldId, &def);
+    return @bitCast(native.b2CreateMouseJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn createPrismaticJoint(worldId: WorldId, def: PrismaticJointDef) JointId {
-    return native.b2CreatePrismaticJoint(worldId, &def);
+    return @bitCast(native.b2CreatePrismaticJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn createRevoluteJoint(worldId: WorldId, def: RevoluteJointDef) JointId {
-    return native.b2CreateRevoluteJoint(worldId, &def);
+    return @bitCast(native.b2CreateRevoluteJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn createWeldJoint(worldId: WorldId, def: WeldJointDef) JointId {
-    return native.b2CreateWeldJoint(worldId, &def);
+    return @bitCast(native.b2CreateWeldJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn createWheelJoint(worldId: WorldId, def: WheelJointDef) JointId {
-    return native.b2CreateWheelJoint(worldId, &def);
+    return @bitCast(native.b2CreateWheelJoint(@bitCast(worldId), @ptrCast(&def)));
 }
 
 pub inline fn destroyJoint(jointId: JointId) void {
-    return native.b2DestroyJoint(jointId);
+    return native.b2DestroyJoint(@bitCast(jointId));
 }
 
 pub inline fn jointIsValid(id: JointId) bool {
-    return native.b2Joint_IsValid(id);
+    return native.b2Joint_IsValid(@bitCast(id));
 }
 
 pub inline fn jointGetType(jointId: JointId) JointType {
-    return native.b2Joint_GetType(jointId);
+    return @bitCast(native.b2Joint_GetType(@bitCast(jointId)));
 }
 
 pub inline fn jointGetBodyA(jointId: JointId) BodyId {
-    return native.b2Joint_GetBodyA(jointId);
+    return @bitCast(native.b2Joint_GetBodyA(@bitCast(jointId)));
 }
 
 pub inline fn jointGetBodyB(jointId: JointId) BodyId {
-    return native.b2Joint_GetBodyB(jointId);
+    return @bitCast(native.b2Joint_GetBodyB(@bitCast(jointId)));
 }
 
 pub inline fn jointGetLocalAnchorA(jointId: JointId) Vec2 {
-    return native.b2Joint_GetLocalAnchorA(jointId);
+    return @bitCast(native.b2Joint_GetLocalAnchorA(@bitCast(jointId)));
 }
 
 pub inline fn jointGetLocalAnchorB(jointId: JointId) Vec2 {
-    return native.b2Joint_GetLocalAnchorB(jointId);
+    return @bitCast(native.b2Joint_GetLocalAnchorB(@bitCast(jointId)));
 }
 
 pub inline fn jointSetCollideConnected(jointId: JointId, shouldCollide: bool) void {
-    native.b2Joint_SetCollideConnected(jointId, shouldCollide);
+    native.b2Joint_SetCollideConnected(@bitCast(jointId), shouldCollide);
 }
 
 pub inline fn jointGetCollideConnected(jointId: JointId) bool {
-    return native.b2Joint_GetCollideConnected(jointId);
+    return native.b2Joint_GetCollideConnected(@bitCast(jointId));
 }
 
 pub inline fn jointSetUserData(jointId: JointId, userData: ?*anyopaque) void {
-    native.b2Joint_SetUserData(jointId, userData);
+    native.b2Joint_SetUserData(@bitCast(jointId), @ptrCast(userData));
 }
 
 pub inline fn jointGetUserData(jointId: JointId) ?*anyopaque {
-    return native.b2Joint_GetUserData(jointId);
+    return @ptrCast(native.b2Joint_GetUserData(@bitCast(jointId)));
 }
 
 pub inline fn jointWakeBodies(jointId: JointId) void {
-    native.b2Joint_WakeBodies(jointId);
+    native.b2Joint_WakeBodies(@bitCast(jointId));
 }
 
 pub inline fn distanceJointGetConstraintForce(jointId: JointId, timeStep: f32) f32 {
-    return native.b2DistanceJoint_GetConstraintForce(jointId, timeStep);
+    return native.b2DistanceJoint_GetConstraintForce(@bitCast(jointId), timeStep);
 }
 
 pub inline fn distanceJointSetLength(jointId: JointId, length: f32) void {
-    return native.b2DistanceJoint_SetLength(jointId, length);
+    return native.b2DistanceJoint_SetLength(@bitCast(jointId), length);
 }
 
 pub inline fn distanceJointGetLength(jointId: JointId) f32 {
-    return distanceJointGetLength(jointId);
+    return distanceJointGetLength(@bitCast(jointId));
 }
 
 pub inline fn distanceJointEnableSpring(jointId: JointId, enableSpring: bool) void {
-    native.b2DistanceJoint_EnableSpring(jointId, enableSpring);
+    native.b2DistanceJoint_EnableSpring(@bitCast(jointId), enableSpring);
 }
 
 pub inline fn distanceJointIsSpringEnabled(jointId: JointId) bool {
-    return native.b2DistanceJoint_IsSpringEnabled(jointId);
+    return native.b2DistanceJoint_IsSpringEnabled(@bitCast(jointId));
 }
 
 pub inline fn distanceJointSetSpringHertz(jointId: JointId, hertz: f32) void {
-    native.b2DistanceJoint_SetSpringHertz(jointId, hertz);
+    native.b2DistanceJoint_SetSpringHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn distanceJointSetSpringDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2DistanceJoint_SetSpringDampingRatio(jointId, dampingRatio);
+    native.b2DistanceJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn distanceJointGetHertz(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetHertz(jointId);
+    return native.b2DistanceJoint_GetHertz(@bitCast(jointId));
 }
 
 pub inline fn distanceJointGetDampingRatio(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetDampingRatio(jointId);
+    return native.b2DistanceJoint_GetDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn distanceJointEnableLimit(jointId: JointId, enableLimit: bool) void {
-    return native.b2DistanceJoint_EnableLimit(jointId, enableLimit);
+    return native.b2DistanceJoint_EnableLimit(@bitCast(jointId), enableLimit);
 }
 
 pub inline fn distanceJointIsLimitEnabled(jointId: JointId) bool {
-    return native.b2DistanceJoint_IsLimitEnabled(jointId);
+    return native.b2DistanceJoint_IsLimitEnabled(@bitCast(jointId));
 }
 
 pub inline fn distanceJointSetLengthRange(jointId: JointId, minLength: f32, maxLength: f32) void {
-    native.b2DistanceJoint_SetLengthRange(jointId, minLength, maxLength);
+    native.b2DistanceJoint_SetLengthRange(@bitCast(jointId), minLength, maxLength);
 }
 
 pub inline fn distanceJointGetMinLength(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetMinLength(jointId);
+    return native.b2DistanceJoint_GetMinLength(@bitCast(jointId));
 }
 
 pub inline fn distanceJointGetMaxLength(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetMaxLength(jointId);
+    return native.b2DistanceJoint_GetMaxLength(@bitCast(jointId));
 }
 
 pub inline fn distanceJointGetCurrentLength(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetCurrentLength(jointId);
+    return native.b2DistanceJoint_GetCurrentLength(@bitCast(jointId));
 }
 
 pub inline fn distanceJointEnableMotor(jointId: JointId, enableMotor: bool) void {
-    native.b2DistanceJoint_EnableMotor(jointId, enableMotor);
+    native.b2DistanceJoint_EnableMotor(@bitCast(jointId), enableMotor);
 }
 
 pub inline fn distanceJointIsMotorEnabled(jointId: JointId) bool {
-    return native.b2DistanceJoint_IsMotorEnabled(jointId);
+    return native.b2DistanceJoint_IsMotorEnabled(@bitCast(jointId));
 }
 
 pub inline fn distanceJointSetMotorSpeed(jointId: JointId, motorSpeed: f32) void {
-    native.b2DistanceJoint_SetMotorSpeed(jointId, motorSpeed);
+    native.b2DistanceJoint_SetMotorSpeed(@bitCast(jointId), motorSpeed);
 }
 
 pub inline fn distanceJointGetMotorSpeed(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetMotorSpeed(jointId);
+    return native.b2DistanceJoint_GetMotorSpeed(@bitCast(jointId));
 }
 
 pub inline fn distanceJointGetMotorForce(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetMotorForce(jointId);
+    return native.b2DistanceJoint_GetMotorForce(@bitCast(jointId));
 }
 
 pub inline fn distanceJointSetMaxMotorForce(jointId: JointId, force: f32) void {
-    native.b2DistanceJoint_SetMaxMotorForce(jointId, force);
+    native.b2DistanceJoint_SetMaxMotorForce(@bitCast(jointId), force);
 }
 
 pub inline fn distanceJointGetMaxMotorForce(jointId: JointId) f32 {
-    return native.b2DistanceJoint_GetMaxMotorForce(jointId);
+    return native.b2DistanceJoint_GetMaxMotorForce(@bitCast(jointId));
 }
 
 pub inline fn motorJointSetLinearOffset(jointId: JointId, linearOffset: Vec2) void {
-    native.b2MotorJoint_SetLinearOffset(jointId, linearOffset);
+    native.b2MotorJoint_SetLinearOffset(@bitCast(jointId), linearOffset);
 }
 
 pub inline fn motorJointGetLinearOffset(jointId: JointId) Vec2 {
-    return native.b2MotorJoint_GetLinearOffset(jointId);
+    return @bitCast(native.b2MotorJoint_GetLinearOffset(@bitCast(jointId)));
 }
 
 pub inline fn motorJointSetAngularOffset(jointId: JointId, angularOffset: f32) void {
-    native.b2MotorJoint_SetAngularOffset(jointId, angularOffset);
+    native.b2MotorJoint_SetAngularOffset(@bitCast(jointId), angularOffset);
 }
 
 pub inline fn motorJointGetAngularOffset(jointId: JointId) f32 {
-    return native.b2MotorJoint_GetAngularOffset(jointId);
+    return native.b2MotorJoint_GetAngularOffset(@bitCast(jointId));
 }
 
 pub inline fn motorJointSetMaxForce(jointId: JointId, maxForce: f32) void {
-    native.b2MotorJoint_SetMaxForce(jointId, maxForce);
+    native.b2MotorJoint_SetMaxForce(@bitCast(jointId), maxForce);
 }
 
 pub inline fn motorJointGetMaxForce(jointId: JointId) f32 {
-    return native.b2MotorJoint_GetMaxForce(jointId);
+    return native.b2MotorJoint_GetMaxForce(@bitCast(jointId));
 }
 
 pub inline fn motorJointSetMaxTorque(jointId: JointId, maxTorque: f32) void {
-    native.b2MotorJoint_SetMaxTorque(jointId, maxTorque);
+    native.b2MotorJoint_SetMaxTorque(@bitCast(jointId), maxTorque);
 }
 
 pub inline fn motorJointGetMaxTorque(jointId: JointId) f32 {
-    return native.b2MotorJoint_GetMaxTorque(jointId);
+    return native.b2MotorJoint_GetMaxTorque(@bitCast(jointId));
 }
 
 pub inline fn motorJointSetCorrectionFactor(jointId: JointId, correctionFactor: f32) void {
-    native.b2MotorJoint_SetCorrectionFactor(jointId, correctionFactor);
+    native.b2MotorJoint_SetCorrectionFactor(@bitCast(jointId), correctionFactor);
 }
 
 pub inline fn motorJointGetCorrectionFactor(jointId: JointId) f32 {
-    return native.b2MotorJoint_GetCorrectionFactor(jointId);
+    return native.b2MotorJoint_GetCorrectionFactor(@bitCast(jointId));
 }
 
 pub inline fn motorJointGetConstraintForce(jointId: JointId) Vec2 {
-    return native.b2MotorJoint_GetConstraintForce(jointId);
+    return @bitCast(native.b2MotorJoint_GetConstraintForce(@bitCast(jointId)));
 }
 
 pub inline fn motorJointGetConstraintTorque(jointId: JointId) f32 {
-    return motorJointGetConstraintTorque(jointId);
+    return native.b2MotorJoint_GetConstraintTorque(@bitCast(jointId));
 }
 
 pub inline fn mouseJointSetTarget(jointId: JointId, target: Vec2) void {
-    native.b2MouseJoint_SetTarget(jointId, target);
+    native.b2MouseJoint_SetTarget(@bitCast(jointId), @bitCast(target));
 }
 
 pub inline fn mouseJointGetTarget(jointId: JointId) Vec2 {
-    return native.b2MouseJoint_GetTarget(jointId);
+    return @bitCast(native.b2MouseJoint_GetTarget(@bitCast(jointId)));
 }
 
 pub inline fn mouseJointSetSpringHertz(jointId: JointId, hertz: f32) void {
-    native.b2MouseJoint_SetSpringHertz(jointId, hertz);
+    native.b2MouseJoint_SetSpringHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn mouseJointSetSpringDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2MouseJoint_SetSpringDampingRatio(jointId, dampingRatio);
+    native.b2MouseJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn mouseJointGetHertz(jointId: JointId) f32 {
-    return native.b2MouseJoint_GetHertz(jointId);
+    return native.b2MouseJoint_GetHertz(@bitCast(jointId));
 }
 
 pub inline fn mouseJointGetDampingRatio(jointId: JointId) f32 {
-    return native.b2MouseJoint_GetDampingRatio(jointId);
+    return native.b2MouseJoint_GetDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointEnableSpring(jointId: JointId, enableSpring: bool) void {
-    native.b2PrismaticJoint_EnableSpring(jointId, enableSpring);
+    native.b2PrismaticJoint_EnableSpring(@bitCast(jointId), enableSpring);
 }
 
 pub inline fn prismaticJointIsSpringEnabled(jointId: JointId) bool {
-    return native.b2PrismaticJoint_IsSpringEnabled(jointId);
+    return native.b2PrismaticJoint_IsSpringEnabled(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointSetSpringHertz(jointId: JointId, hertz: f32) void {
-    native.b2PrismaticJoint_SetSpringHertz(jointId, hertz);
+    native.b2PrismaticJoint_SetSpringHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn prismaticJointGetSpringHertz(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetSpringHertz(jointId);
+    return native.b2PrismaticJoint_GetSpringHertz(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointSetSpringDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2PrismaticJoint_SetSpringDampingRatio(jointId, dampingRatio);
+    native.b2PrismaticJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn prismaticJointGetSpringDampingRatio(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetSpringDampingRatio(jointId);
+    return native.b2PrismaticJoint_GetSpringDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointEnableLimit(jointId: JointId, enableLimit: bool) void {
-    native.b2PrismaticJoint_EnableLimit(jointId, enableLimit);
+    native.b2PrismaticJoint_EnableLimit(@bitCast(jointId), enableLimit);
 }
 
 pub inline fn prismaticJointIsLimitEnabled(jointId: JointId) bool {
-    return native.b2PrismaticJoint_IsLimitEnabled(jointId);
+    return native.b2PrismaticJoint_IsLimitEnabled(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointGetLowerLimit(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetLowerLimit(jointId);
+    return native.b2PrismaticJoint_GetLowerLimit(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointGetUpperLimit(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetUpperLimit(jointId);
+    return native.b2PrismaticJoint_GetUpperLimit(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointSetLimits(jointId: JointId, lower: f32, upper: f32) void {
-    native.b2PrismaticJoint_SetLimits(jointId, lower, upper);
+    native.b2PrismaticJoint_SetLimits(@bitCast(jointId), lower, upper);
 }
 
 pub inline fn prismaticJointEnableMotor(jointId: JointId, enableMotor: bool) void {
-    native.b2PrismaticJoint_EnableMotor(jointId, enableMotor);
+    native.b2PrismaticJoint_EnableMotor(@bitCast(jointId), enableMotor);
 }
 
 pub inline fn prismaticJointIsMotorEnabled(jointId: JointId) bool {
-    return native.b2PrismaticJoint_IsMotorEnabled(jointId);
+    return native.b2PrismaticJoint_IsMotorEnabled(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointSetMotorSpeed(jointId: JointId, motorSpeed: f32) void {
-    native.b2PrismaticJoint_SetMotorSpeed(jointId, motorSpeed);
+    native.b2PrismaticJoint_SetMotorSpeed(@bitCast(jointId), motorSpeed);
 }
 
 pub inline fn prismaticJointGetMotorSpeed(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetMotorSpeed(jointId);
+    return native.b2PrismaticJoint_GetMotorSpeed(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointGetMotorForce(jointId: JointId) f32 {
-    return prismaticJointGetMotorForce(jointId);
+    return native.b2PrismaticJoint_GetMotorForce(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointSetMaxMotorForce(jointId: JointId, force: f32) void {
-    native.b2PrismaticJoint_SetMaxMotorForce(jointId, force);
+    native.b2PrismaticJoint_SetMaxMotorForce(@bitCast(jointId), force);
 }
 
 pub inline fn prismaticJointGetMaxMotorForce(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetMaxMotorForce(jointId);
+    return native.b2PrismaticJoint_GetMaxMotorForce(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointGetConstraintForce(jointId: JointId) Vec2 {
-    return native.b2PrismaticJoint_GetConstraintForce(jointId);
+    return @bitCast(native.b2PrismaticJoint_GetConstraintForce(@bitCast(jointId)));
 }
 
 pub inline fn prismaticJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetConstraintTorque(jointId);
+    return native.b2PrismaticJoint_GetConstraintTorque(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointEnableSpring(jointId: JointId, enableSpring: bool) void {
-    native.b2RevoluteJoint_EnableSpring(jointId, enableSpring);
+    native.b2RevoluteJoint_EnableSpring(@bitCast(jointId), enableSpring);
 }
 
 pub inline fn revoluteJointIsLimitEnabled(jointId: JointId) bool {
-    return native.b2RevoluteJoint_IsLimitEnabled(jointId);
+    return native.b2RevoluteJoint_IsLimitEnabled(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointSetSpringHertz(jointId: JointId, hertz: f32) void {
-    native.b2RevoluteJoint_SetSpringHertz(jointId, hertz);
+    native.b2RevoluteJoint_SetSpringHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn revoluteJointGetSpringHertz(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetSpringHertz(jointId);
+    return native.b2RevoluteJoint_GetSpringHertz(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointSetSpringDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2RevoluteJoint_SetSpringDampingRatio(jointId, dampingRatio);
+    native.b2RevoluteJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn revoluteJointGetSpringDampingRatio(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetSpringDampingRatio(jointId);
+    return native.b2RevoluteJoint_GetSpringDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointGetAngle(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetAngle(jointId);
+    return native.b2RevoluteJoint_GetAngle(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointEnableLimit(jointId: JointId, enableLimit: bool) void {
-    native.b2RevoluteJoint_EnableLimit(jointId, enableLimit);
+    native.b2RevoluteJoint_EnableLimit(@bitCast(jointId), enableLimit);
 }
 
 pub inline fn revoluteJointGetLowerLimit(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetLowerLimit(jointId);
+    return native.b2RevoluteJoint_GetLowerLimit(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointGetUpperLimit(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetUpperLimit(jointId);
+    return native.b2RevoluteJoint_GetUpperLimit(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointSetLimits(jointId: JointId, lower: f32, upper: f32) void {
-    native.b2RevoluteJoint_SetLimits(jointId, lower, upper);
+    native.b2RevoluteJoint_SetLimits(@bitCast(jointId), lower, upper);
 }
 
 pub inline fn revoluteJointEnableMotor(jointId: JointId, enableMotor: bool) void {
-    native.b2RevoluteJoint_EnableMotor(jointId, enableMotor);
+    native.b2RevoluteJoint_EnableMotor(@bitCast(jointId), enableMotor);
 }
 
 pub inline fn revoluteJointIsMotorEnabled(jointId: JointId) bool {
-    return native.b2RevoluteJoint_IsMotorEnabled(jointId);
+    return native.b2RevoluteJoint_IsMotorEnabled(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointSetMotorSpeed(jointId: JointId, motorSpeed: f32) void {
-    native.b2RevoluteJoint_SetMotorSpeed(jointId, motorSpeed);
+    native.b2RevoluteJoint_SetMotorSpeed(@bitCast(jointId), motorSpeed);
 }
 
 pub inline fn revoluteJointGetMotorSpeed(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetMotorSpeed(jointId);
+    return native.b2RevoluteJoint_GetMotorSpeed(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointGetMotorTorque(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetMotorTorque(jointId);
+    return native.b2RevoluteJoint_GetMotorTorque(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointSetMaxMotorTorque(jointId: JointId, torque: f32) void {
-    native.b2RevoluteJoint_SetMaxMotorTorque(jointId, torque);
+    native.b2RevoluteJoint_SetMaxMotorTorque(@bitCast(jointId), torque);
 }
 
 pub inline fn revoluteJointGetMaxMotorTorque(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetMaxMotorTorque(jointId);
+    return native.b2RevoluteJoint_GetMaxMotorTorque(@bitCast(jointId));
 }
 
 pub inline fn revoluteJointGetConstraintForce(jointId: JointId) Vec2 {
-    return native.b2RevoluteJoint_GetConstraintForce(jointId);
+    return @bitCast(native.b2RevoluteJoint_GetConstraintForce(@bitCast(jointId)));
 }
 
 pub inline fn revoluteJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetConstraintTorque(jointId);
+    return native.b2RevoluteJoint_GetConstraintTorque(@bitCast(jointId));
 }
 
 pub inline fn wheelJointEnableSpring(jointId: JointId, enableSpring: bool) void {
-    native.b2WheelJoint_EnableSpring(jointId, enableSpring);
+    native.b2WheelJoint_EnableSpring(@bitCast(jointId), enableSpring);
 }
 
 pub inline fn wheelJointIsSpringEnabled(jointId: JointId) bool {
-    return native.b2WheelJoint_IsSpringEnabled(jointId);
+    return native.b2WheelJoint_IsSpringEnabled(@bitCast(jointId));
 }
 
 pub inline fn wheelJointSetSpringHertz(jointId: JointId, hertz: f32) void {
-    return native.b2WheelJoint_SetSpringHertz(jointId, hertz);
+    return native.b2WheelJoint_SetSpringHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn wheelJointGetSpringHertz(jointId: JointId) f32 {
-    return native.b2WheelJoint_GetSpringHertz(jointId);
+    return native.b2WheelJoint_GetSpringHertz(@bitCast(jointId));
 }
 
 pub inline fn wheelJointSetSpringDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2WheelJoint_SetSpringDampingRatio(jointId, dampingRatio);
+    native.b2WheelJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn wheelJointGetSpringDampingRatio(jointId: JointId) f32 {
-    return native.b2WheelJoint_GetSpringDampingRatio(jointId);
+    return native.b2WheelJoint_GetSpringDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn wheelJointEnableLimit(jointId: JointId, enableLimit: bool) void {
-    native.b2WheelJoint_EnableLimit(jointId, enableLimit);
+    native.b2WheelJoint_EnableLimit(@bitCast(jointId), enableLimit);
 }
 
 pub inline fn wheelJointIsLimitEnabled(jointId: JointId) bool {
-    return native.b2WheelJoint_IsLimitEnabled(jointId);
+    return native.b2WheelJoint_IsLimitEnabled(@bitCast(jointId));
 }
 
 pub inline fn wheelJointGetLowerLimit(jointId: JointId) f32 {
-    return wheelJointGetLowerLimit(jointId);
+    return native.b2WheelJoint_GetLowerLimit(@bitCast(jointId));
 }
 
 pub inline fn wheelJointGetUpperLimit(jointId: JointId) f32 {
-    return wheelJointGetUpperLimit(jointId);
+    return native.b2WheelJoint_GetUpperLimit(@bitCast(jointId));
 }
 
 pub inline fn wheelJointSetLimits(jointId: JointId, lower: f32, upper: f32) void {
-    native.b2WheelJoint_SetLimits(jointId, lower, upper);
+    native.b2WheelJoint_SetLimits(@bitCast(jointId), lower, upper);
 }
 
 pub inline fn wheelJointEnableMotor(jointId: JointId, enableMotor: bool) void {
-    native.b2WheelJoint_EnableMotor(jointId, enableMotor);
+    native.b2WheelJoint_EnableMotor(@bitCast(jointId), enableMotor);
 }
 
 pub inline fn wheelJointIsMotorEnabled(jointId: JointId) bool {
-    return native.b2WheelJoint_IsMotorEnabled(jointId);
+    return native.b2WheelJoint_IsMotorEnabled(@bitCast(jointId));
 }
 
 pub inline fn wheelJointSetMotorSpeed(jointId: JointId, motorSpeed: f32) void {
-    native.b2WheelJoint_SetMotorSpeed(jointId, motorSpeed);
+    native.b2WheelJoint_SetMotorSpeed(@bitCast(jointId), motorSpeed);
 }
 
 pub inline fn wheelJointGetMotorSpeed(jointId: JointId) f32 {
-    return native.b2WheelJoint_GetMotorSpeed(jointId);
+    return native.b2WheelJoint_GetMotorSpeed(@bitCast(jointId));
 }
 
 pub inline fn wheelJointGetMotorTorque(jointId: JointId) f32 {
-    return wheelJointGetMotorTorque(jointId);
+    return wheelJointGetMotorTorque(@bitCast(jointId));
 }
 
 pub inline fn wheelJointSetMaxMotorTorque(jointId: JointId, torque: f32) void {
-    native.b2WheelJoint_SetMaxMotorTorque(jointId, torque);
+    native.b2WheelJoint_SetMaxMotorTorque(@bitCast(jointId), torque);
 }
 
 pub inline fn wheelJointGetMaxMotorTorque(jointId: JointId) f32 {
-    return native.b2WheelJoint_GetMaxMotorTorque(jointId);
+    return native.b2WheelJoint_GetMaxMotorTorque(@bitCast(jointId));
 }
 
 pub inline fn wheelJointGetConstraintForce(jointId: JointId) Vec2 {
-    return wheelJointGetConstraintForce(jointId);
+    return @bitCast(native.b2WheelJoint_GetConstraintForce(@bitCast(jointId)));
 }
 
 pub inline fn wheelJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2WheelJoint_GetConstraintTorque(jointId);
+    return native.b2WheelJoint_GetConstraintTorque(@bitCast(jointId));
 }
 
 pub inline fn weldJointSetLinearHertz(jointId: JointId, hertz: f32) void {
-    return weldJointSetLinearHertz(jointId, hertz);
+    return native.b2WeldJoint_SetLinearHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn weldJointGetLinearHertz(jointId: JointId) f32 {
-    return native.b2WeldJoint_GetLinearHertz(jointId);
+    return native.b2WeldJoint_GetLinearHertz(@bitCast(jointId));
 }
 
 pub inline fn weldJointSetLinearDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2WeldJoint_SetLinearDampingRatio(jointId, dampingRatio);
+    native.b2WeldJoint_SetLinearDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn weldJointGetLinearDampingRatio(jointId: JointId) f32 {
-    return native.b2WeldJoint_GetLinearDampingRatio(jointId);
+    return native.b2WeldJoint_GetLinearDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn weldJointSetAngularHertz(jointId: JointId, hertz: f32) void {
-    return native.b2WeldJoint_SetAngularHertz(jointId, hertz);
+    return native.b2WeldJoint_SetAngularHertz(@bitCast(jointId), hertz);
 }
 
 pub inline fn weldJointGetAngularHertz(jointId: JointId) f32 {
-    return native.b2WeldJoint_GetAngularHertz(jointId);
+    return native.b2WeldJoint_GetAngularHertz(@bitCast(jointId));
 }
 
 pub inline fn weldJointSetAngularDampingRatio(jointId: JointId, dampingRatio: f32) void {
-    native.b2WeldJoint_SetAngularDampingRatio(jointId, dampingRatio);
+    native.b2WeldJoint_SetAngularDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
 pub inline fn weldJointGetAngularDampingRatio(jointId: JointId) f32 {
-    return native.b2WeldJoint_GetAngularDampingRatio(jointId);
+    return native.b2WeldJoint_GetAngularDampingRatio(@bitCast(jointId));
 }
 
 // TODO: color hex code enum (well, in Zig an enum would be a bad choice, but you get the idea)
@@ -1511,104 +1511,104 @@ pub inline fn makeColorAlpha(hexCode: u32, alpha: f32) Color {
 }
 
 pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDistanceResult {
-    return native.b2SegmentDistance(p1, q1, p2, q2);
+    return @bitCast(native.b2SegmentDistance(@bitCast(p1), @bitCast(q1), @bitCast(p2), @bitCast(q2)));
 }
 
 pub inline fn shapeDistance(cache: *DistanceCache, input: DistanceInput) DistanceOutput {
-    return native.b2ShapeDistance(cache, &input);
+    return @bitCast(native.b2ShapeDistance(@ptrCast(cache), @ptrCast(&input)));
 }
 
 pub inline fn shapeCast(input: ShapeCastPairInput) CastOutput {
-    return native.b2ShapeCast(&input);
+    return @bitCast(native.b2ShapeCast(@ptrCast(&input)));
 }
 
 pub inline fn makeProxy(vertices: []const Vec2, radius: f32) DistanceProxy {
-    return native.b2MakeProxy(vertices.ptr, @intCast(vertices.len), radius);
+    return @bitCast(native.b2MakeProxy(@ptrCast(vertices.ptr), @intCast(vertices.len), radius));
 }
 
 pub inline fn getSweepTransform(sweep: Sweep, time: f32) Transform {
-    return native.b2GetSweepTransform(&sweep, time);
+    return @bitCast(native.b2GetSweepTransform(@ptrCast(&sweep), time));
 }
 
 pub inline fn dynamicTreeCreate() DynamicTree {
-    return native.b2DynamicTree_Create();
+    return @bitCast(native.b2DynamicTree_Create());
 }
 
 pub inline fn dynamicTreeDestroy(tree: *DynamicTree) void {
-    native.b2DynamicTree_Destroy(tree);
+    native.b2DynamicTree_Destroy(@ptrCast(tree));
 }
 
 pub inline fn dynamicTreeCreateProxy(tree: *DynamicTree, aabb: AABB, categoryBits: u32, userData: i32) i32 {
-    return native.b2DynamicTree_CreateProxy(tree, aabb, categoryBits, userData);
+    return native.b2DynamicTree_CreateProxy(@ptrCast(tree), @bitCast(aabb), categoryBits, userData);
 }
 
 pub inline fn dynamicTreeDestroyProxy(tree: *DynamicTree, proxyId: i32) void {
-    native.b2DynamicTree_DestroyProxy(tree, proxyId);
+    native.b2DynamicTree_DestroyProxy(@ptrCast(tree), proxyId);
 }
 
 pub inline fn dynamicTreeClone(outTree: *DynamicTree, inTree: DynamicTree) void {
-    native.b2DynamicTree_Clone(outTree, &inTree);
+    native.b2DynamicTree_Clone(@ptrCast(outTree), @ptrCast(&inTree));
 }
 
 pub inline fn dynamicTreeMoveProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
-    native.b2DynamicTree_MoveProxy(tree, proxyId, aabb);
+    native.b2DynamicTree_MoveProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
 }
 
 pub inline fn dynamicTreeEnlargeProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
-    native.b2DynamicTree_EnlargeProxy(tree, proxyId, aabb);
+    native.b2DynamicTree_EnlargeProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
 }
 
 pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const b2TreeQueryCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_QueryFiltered(&tree, aabb, maskBits, callback, context);
+    native.b2DynamicTree_QueryFiltered(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
 }
 
 pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const b2TreeQueryCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_Query(&tree, aabb, callback, context);
+    native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), @ptrCast(callback), @ptrCast(context));
 }
 
 pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const b2TreeRayCastCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_RayCast(&tree, &input, maskBits, callback, context);
+    native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
 }
 
 pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const b2TreeShapeCastCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_ShapeCast(&tree, &input, maskBits, callback, context);
+    native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
 }
 
 pub inline fn dynamicTreeValidate(tree: DynamicTree) void {
-    native.b2DynamicTree_Validate(&tree);
+    native.b2DynamicTree_Validate(@ptrCast(&tree));
 }
 
 pub inline fn dynamicTreeGetHeight(tree: DynamicTree) i32 {
-    return native.b2DynamicTree_GetHeight(&tree);
+    return native.b2DynamicTree_GetHeight(@ptrCast(&tree));
 }
 
 pub inline fn dynamicTreeGetMaxBalance(tree: DynamicTree) i32 {
-    return native.b2DynamicTree_GetMaxBalance(&tree);
+    return native.b2DynamicTree_GetMaxBalance(@ptrCast(&tree));
 }
 
 pub inline fn dynamicTreeGetAreaRatio(tree: DynamicTree) f32 {
-    return native.b2DynamicTree_GetAreaRatio(&tree);
+    return native.b2DynamicTree_GetAreaRatio(@ptrCast(&tree));
 }
 
 pub inline fn dynamicTreeRebuildBottomUp(tree: *DynamicTree) void {
-    native.b2DynamicTree_RebuildBottomUp(tree);
+    native.b2DynamicTree_RebuildBottomUp(@ptrCast(tree));
 }
 
 pub inline fn dynamicTreeGetProxyCount(tree: DynamicTree) i32 {
-    return native.b2DynamicTree_GetProxyCount(&tree);
+    return native.b2DynamicTree_GetProxyCount(@ptrCast(&tree));
 }
 
 pub inline fn dynamicTreeRebuild(tree: *DynamicTree, fullBuild: bool) i32 {
-    return native.b2DynamicTree_Rebuild(tree, fullBuild);
+    return native.b2DynamicTree_Rebuild(@ptrCast(tree), fullBuild);
 }
 
 pub inline fn dynamicTreeShiftOrigin(tree: *DynamicTree, newOrigin: Vec2) void {
-    native.b2DynamicTree_ShiftOrigin(tree, newOrigin);
+    native.b2DynamicTree_ShiftOrigin(@ptrCast(tree), @bitCast(newOrigin));
 }
 
 pub inline fn dynamicTreeGetByteCount(tree: DynamicTree) c_int {
     // TODO is there a const cast error here?
-    return native.b2DynamicTree_GetByteCount(&tree);
+    return native.b2DynamicTree_GetByteCount(@ptrCast(&tree));
 }
 
 pub inline fn dynamicTreeGetUserData(tree: DynamicTree, proxyId: i32) i32 {
@@ -1620,11 +1620,11 @@ pub inline fn dynamicTreeGetAABB(tree: DynamicTree, proxyId: i32) AABB {
 }
 
 pub inline fn computeHull(points: []const Vec2) Hull {
-    return native.b2ComputeHull(points.ptr, @intCast(points.len));
+    return @bitCast(native.b2ComputeHull(@ptrCast(points.ptr), @intCast(points.len)));
 }
 
 pub inline fn validateHull(hull: Hull) bool {
-    return native.b2ValidateHull(&hull);
+    return native.b2ValidateHull(@ptrCast(&hull));
 }
 
 pub inline fn unwindAngle(angle: f32) f32 {
@@ -1667,37 +1667,37 @@ pub inline fn AABB_Union(a: AABB, b: AABB) AABB {
 }
 
 pub inline fn vec2IsValid(v: Vec2) bool {
-    return native.b2Vec2_IsValid(v);
+    return native.b2Vec2_IsValid(@bitCast(v));
 }
 
 pub inline fn AABB_IsValid(aabb: AABB) bool {
-    return native.b2AABB_IsValid(aabb);
+    return native.b2AABB_IsValid(@bitCast(aabb));
 }
 
 pub inline fn normalize(v: Vec2) Vec2 {
-    return native.b2Normalize(v);
+    return @bitCast(native.b2Normalize(@bitCast(v)));
 }
 
 pub inline fn normalizeChecked(v: Vec2) Vec2 {
-    return native.b2NormalizeChecked(v);
+    return @bitCast(native.b2NormalizeChecked(@bitCast(v)));
 }
 
 pub inline fn getLengthAndNormalize(length: *f32, v: Vec2) Vec2 {
-    return native.b2GetLengthAndNormalize(length, v);
+    return @bitCast(native.b2GetLengthAndNormalize(@ptrCast(length), @bitCast(v)));
 }
 // TODO: Do we need these functions? Check if the Zig standard library has suitable equivalents and Timer isn't used elsewhere.
 pub inline fn createTimer() Timer {
-    return native.b2CreateTimer();
+    return @bitCast(native.b2CreateTimer());
 }
 // TODO: should parameter be const?
 pub inline fn getTicks(timer: *Timer) i64 {
-    return native.b2GetTicks(timer);
+    return native.b2GetTicks(@ptrCast(timer));
 }
 pub inline fn getMilliseconds(timer: Timer) f32 {
-    return native.b2GetMilliseconds(&timer);
+    return native.b2GetMilliseconds(@ptrCast(&timer));
 }
 pub inline fn getMillisecondsAndReset(timer: *Timer) f32 {
-    return native.b2GetMillisecondsAndReset(timer);
+    return native.b2GetMillisecondsAndReset(@ptrCast(timer));
 }
 pub inline fn sleepMilliseconds(milliseconds: c_int) void {
     native.b2SleepMilliseconds(milliseconds);
