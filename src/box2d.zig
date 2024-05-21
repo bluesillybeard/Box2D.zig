@@ -782,7 +782,7 @@ pub inline fn getByteCount() usize {
     return @intCast(native.b2GetByteCount());
 }
 
-// Functions that have not been translated
+// Functions that have not been fully translated
 
 pub inline fn defaultBodyDef() BodyDef {
     return @bitCast(native.b2DefaultBodyDef());
@@ -803,6 +803,8 @@ pub inline fn defaultShapeDef() ShapeDef {
 pub inline fn defaultChainDef() ChainDef {
     return @bitCast(native.b2DefaultChainDef());
 }
+
+// For the collision functions, it will require re-duplicating since I want to be able to to do cirlce.collideCapsule(capsule) as well as capsule.collideCircle(circle)
 
 pub inline fn collideCircles(circleA:  Circle, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollideCircles(@ptrCast(&circleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
