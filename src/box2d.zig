@@ -64,6 +64,8 @@ pub const ContactEvents = native.b2ContactEvents;
 pub const AABB = native.b2AABB;
 pub const QueryFilter = native.b2QueryFilter;
 pub const ShapeId = native.b2ShapeId;
+pub const TOIInput = native.b2TOIInput;
+pub const TOIOutput = native.b2TOIOutput;
 
 // Types that have been translated
 
@@ -776,17 +778,221 @@ pub const JointType = enum(c_uint) {
 
 // Functions that have been translated but don't fit into any of the above structs
 
-pub inline fn GetByteCount() usize {
+pub inline fn getByteCount() usize {
     return @intCast(native.b2GetByteCount());
 }
 
 // Functions that have not been translated
 
-pub inline fn SetAllocator(alloc: *AllocFn, free: *FreeFn) void {
+pub inline fn defaultBodyDef() BodyDef {
+    return @bitCast(native.b2DefaultBodyDef());
+}
+
+pub inline fn defaultFilter() Filter {
+    return @bitCast(native.b2DefaultFilter());
+}
+
+pub inline fn defaultQueryFilter() QueryFilter {
+    return @bitCast(native.b2DefaultFilter());
+}
+
+pub inline fn defaultShapeDef() ShapeDef {
+    return @bitCast(native.b2DefaultShapeDef());
+}
+
+pub inline fn defaultChainDef() ChainDef {
+    return @bitCast(native.b2DefaultChainDef());
+}
+
+pub inline fn collideCircles(circleA:  Circle, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+    return @bitCast(native.b2CollideCircles(@ptrCast(&circleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
+}
+
+pub inline fn collideCapsuleAndCircle(capsuleA:  Capsule, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+    return @bitCast(native.b2CollideCapsuleAndCircle(@ptrCast(&capsuleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
+}
+
+pub inline fn collideSegmentAndCircle(segmentA:  Segment, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+    return @bitCast(native.b2CollideSegmentAndCircle(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
+}
+
+pub inline fn collidePolygonAndCircle(polygonA:  Polygon, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+    return @bitCast(native.b2CollidePolygonAndCircle(@ptrCast(&polygonA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
+}
+
+pub inline fn collideCapsules(capsuleA:  Capsule, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideCapsules(@ptrCast(&capsuleA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn collideSegmentAndCapsule(segmentA:  Segment, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideSegmentAndCapsule(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn collidePolygonAndCapsule(polygonA:  Polygon, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollidePolygonAndCapsule(@ptrCast(&polygonA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn collidePolygons(polyA:  Polygon, xfA: Transform, polyB:  Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollidePolygons(@ptrCast(&polyA), @bitCast(xfA), @ptrCast(&polyB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn collideSegmentAndPolygon(segmentA:  Segment, xfA: Transform, polygonB:  Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideSegmentAndPolygon(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn collideSmoothSegmentAndCircle(smoothSegmentA:  SmoothSegment, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+    return @bitCast(native.b2CollideSmoothSegmentAndCircle(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
+}
+
+pub inline fn collideSmoothSegmentAndCapsule(smoothSegmentA:  SmoothSegment, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideSmoothSegmentAndCapsule(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn collideSmoothSegmentAndPolygon(smoothSegmentA:  SmoothSegment, xfA: Transform, polygonB:  Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideSmoothSegmentAndPolygon(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
+}
+
+pub inline fn isValidRay(input:  RayCastInput) bool {
+    return native.b2IsValidRay(@ptrCast(&input));
+}
+
+pub inline fn makePolygon(hull:  Hull, radius: f32) Polygon {
+    return @bitCast(native.b2MakePolygon(@ptrCast(&hull), radius));
+}
+
+pub inline fn makeOffsetPolygon(hull:  Hull, radius: f32, transform: Transform) Polygon {
+    return @bitCast(native.b2MakeOffsetPolygon(@ptrCast(&hull), radius, @bitCast(transform)));
+}
+
+pub inline fn makeSquare(h: f32) Polygon {
+    return @bitCast(native.b2MakeSquare(h));
+}
+
+pub inline fn makeBox(hx: f32, hy: f32) Polygon {
+    return @bitCast(native.b2MakeBox(hx, hy));
+}
+
+pub inline fn makeRoundedBox(hx: f32, hy: f32, radius: f32) Polygon {
+    return @bitCast(native.b2MakeRoundedBox(hx, hy, radius));
+}
+
+pub inline fn makeOffsetBox(hx: f32, hy: f32, center: Vec2, angle: f32) Polygon {
+    return @bitCast(native.b2MakeOffsetBox(hx, hy, center, angle));
+}
+
+pub inline fn transformPolygon(transform: Transform, polygon:  Polygon) Polygon {
+    return @bitCast(native.b2TransformPolygon(@bitCast(transform), @ptrCast(&polygon)));
+}
+
+pub inline fn computeCircleMass(shape:  Circle, density: f32) MassData {
+    return @bitCast(native.b2ComputeCircleMass(@ptrCast(&shape), density));
+}
+
+pub inline fn computeCapsuleMass(shape:  Capsule, density: f32) MassData {
+    return @bitCast(native.b2ComputeCapsuleMass(@ptrCast(&shape), density));
+}
+
+pub inline fn computePolygonMass(shape:  Polygon, density: f32) MassData {
+    return @bitCast(native.b2ComputePolygonMass(@ptrCast(&shape), density));
+}
+
+pub inline fn computeCircleAABB(shape:  Circle, transform: Transform) AABB {
+    return @bitCast(native.b2ComputeCircleAABB(@ptrCast(&shape), @bitCast(transform)));
+}
+
+pub inline fn computeCapsuleAABB(shape:  Capsule, transform: Transform) AABB {
+    return @bitCast(native.b2ComputeCapsuleAABB(@ptrCast(&shape), @bitCast(transform)));
+}
+
+pub inline fn computePolygonAABB(shape:  Polygon, transform: Transform) AABB {
+    return @bitCast(native.b2ComputePolygonAABB(@ptrCast(&shape), @bitCast(transform)));
+}
+
+pub inline fn computeSegmentAABB(shape:  Segment, transform: Transform) AABB {
+    return @bitCast(native.b2ComputeSegmentAABB(@ptrCast(&shape), @bitCast(transform)));
+}
+
+pub inline fn pointInCircle(point: Vec2, shape:  Circle) bool {
+    return native.b2PointInCircle(@bitCast(point), @ptrCast(&shape));
+}
+
+pub inline fn pointInCapsule(point: Vec2, shape:  Capsule) bool {
+    return native.b2PointInCapsule(@bitCast(point), @ptrCast(&shape));
+}
+
+pub inline fn pointInPolygon(point: Vec2, shape:  Polygon) bool {
+    return native.b2PointInPolygon(@bitCast(point), @ptrCast(&shape));
+}
+
+pub inline fn rayCastCircle(input:  RayCastInput, shape:  Circle) CastOutput {
+    return @bitCast(native.b2RayCastCircle(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn rayCastCapsule(input:  RayCastInput, shape:  Capsule) CastOutput {
+    return @bitCast(native.b2RayCastCapsule(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn rayCastSegment(input:  RayCastInput, shape:  Segment, oneSided: bool) CastOutput {
+    return @bitCast(native.b2RayCastSegment(@ptrCast(&input), @ptrCast(&shape), oneSided));
+}
+
+pub inline fn rayCastPolygon(input:  RayCastInput, shape:  Polygon) CastOutput {
+    return @bitCast(native.b2RayCastPolygon(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn shapeCastCircle(input:  ShapeCastInput, shape:  Circle) CastOutput {
+    return @bitCast(native.b2ShapeCastCircle(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn shapeCastCapsule(input:  ShapeCastInput, shape:  Capsule) CastOutput {
+    return @bitCast(native.b2ShapeCastCapsule(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn shapeCastSegment(input:  ShapeCastInput, shape:  Segment) CastOutput {
+    return @bitCast(native.b2ShapeCastSegment(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn shapeCastPolygon(input:  ShapeCastInput, shape:  Polygon) CastOutput {
+    return @bitCast(native.b2ShapeCastPolygon(@ptrCast(&input), @ptrCast(&shape)));
+}
+
+pub inline fn defaultDistanceJointDef() DistanceJointDef {
+    return @bitCast(native.b2DefaultDistanceJointDef());
+}
+
+pub inline fn defaultMotorJointDef() MotorJointDef {
+    return @bitCast(native.b2DefaultMotorJointDef());
+}
+
+pub inline fn defaultMouseJointDef() MouseJointDef {
+    return @bitCast(native.b2DefaultMouseJointDef());
+}
+
+pub inline fn defaultPrismaticJointDef() PrismaticJointDef {
+    return @bitCast(native.b2DefaultPrismaticJointDef());
+}
+
+pub inline fn defaultRevoluteJointDef() RevoluteJointDef {
+    return @bitCast(native.b2DefaultRevoluteJointDef());
+}
+
+pub inline fn defaultWeldJointDef() WeldJointDef {
+    return @bitCast(native.b2DefaultWeldJointDef());
+}
+
+pub inline fn defaultWheelJointDef() WheelJointDef {
+    return @bitCast(native.b2DefaultWheelJointDef());
+}
+
+pub inline fn setAllocator(alloc: *AllocFn, free: *FreeFn) void {
     native.b2SetAllocator(@ptrCast(&alloc), @ptrCast(&free));
 }
 
-pub inline fn SetAssertFn(assertFn: *AssertFn) void {
+pub inline fn timeOfImpact(input: TOIInput) TOIOutput {
+    return native.b2TimeOfImpact(&input);
+}
+
+pub inline fn setAssertFn(assertFn: *AssertFn) void {
     native.b2SetAssertFcn(@ptrCast(assertFn));
 }
 
@@ -1685,6 +1891,7 @@ pub inline fn normalizeChecked(v: Vec2) Vec2 {
 pub inline fn getLengthAndNormalize(length: *f32, v: Vec2) Vec2 {
     return @bitCast(native.b2GetLengthAndNormalize(@ptrCast(length), @bitCast(v)));
 }
+
 // TODO: Do we need these functions? Check if the Zig standard library has suitable equivalents and Timer isn't used elsewhere.
 pub inline fn createTimer() Timer {
     return @bitCast(native.b2CreateTimer());
@@ -1814,6 +2021,8 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(ShapeCastInput, native.b2ShapeCastInput));
     try std.testing.expect(structsAreABICompatible(Hull, native.b2Hull));
     try std.testing.expect(structsAreABICompatible(Timer, native.b2Timer));
+    try std.testing.expect(structsAreABICompatible(TOIInput, native.b2TOIInput));
+    try std.testing.expect(structsAreABICompatible(TOIOutput, native.b2TOIOutput));
     // TODO: and the function pointers
     // TODO: and the enums
 }
