@@ -806,63 +806,63 @@ pub inline fn defaultChainDef() ChainDef {
 
 // For the collision functions, it will require re-duplicating since I want to be able to to do cirlce.collideCapsule(capsule) as well as capsule.collideCircle(circle)
 
-pub inline fn collideCircles(circleA:  Circle, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+pub inline fn collideCircles(circleA: Circle, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollideCircles(@ptrCast(&circleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
 }
 
-pub inline fn collideCapsuleAndCircle(capsuleA:  Capsule, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+pub inline fn collideCapsuleAndCircle(capsuleA: Capsule, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollideCapsuleAndCircle(@ptrCast(&capsuleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
 }
 
-pub inline fn collideSegmentAndCircle(segmentA:  Segment, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+pub inline fn collideSegmentAndCircle(segmentA: Segment, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollideSegmentAndCircle(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
 }
 
-pub inline fn collidePolygonAndCircle(polygonA:  Polygon, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+pub inline fn collidePolygonAndCircle(polygonA: Polygon, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollidePolygonAndCircle(@ptrCast(&polygonA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
 }
 
-pub inline fn collideCapsules(capsuleA:  Capsule, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collideCapsules(capsuleA: Capsule, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollideCapsules(@ptrCast(&capsuleA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collideSegmentAndCapsule(segmentA:  Segment, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collideSegmentAndCapsule(segmentA: Segment, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollideSegmentAndCapsule(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collidePolygonAndCapsule(polygonA:  Polygon, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collidePolygonAndCapsule(polygonA: Polygon, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollidePolygonAndCapsule(@ptrCast(&polygonA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collidePolygons(polyA:  Polygon, xfA: Transform, polyB:  Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collidePolygons(polyA: Polygon, xfA: Transform, polyB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollidePolygons(@ptrCast(&polyA), @bitCast(xfA), @ptrCast(&polyB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collideSegmentAndPolygon(segmentA:  Segment, xfA: Transform, polygonB:  Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collideSegmentAndPolygon(segmentA: Segment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollideSegmentAndPolygon(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collideSmoothSegmentAndCircle(smoothSegmentA:  SmoothSegment, xfA: Transform, circleB:  Circle, xfB: Transform) Manifold {
+pub inline fn collideSmoothSegmentAndCircle(smoothSegmentA: SmoothSegment, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollideSmoothSegmentAndCircle(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
 }
 
-pub inline fn collideSmoothSegmentAndCapsule(smoothSegmentA:  SmoothSegment, xfA: Transform, capsuleB:  Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collideSmoothSegmentAndCapsule(smoothSegmentA: SmoothSegment, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollideSmoothSegmentAndCapsule(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collideSmoothSegmentAndPolygon(smoothSegmentA:  SmoothSegment, xfA: Transform, polygonB:  Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+pub inline fn collideSmoothSegmentAndPolygon(smoothSegmentA: SmoothSegment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollideSmoothSegmentAndPolygon(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn isValidRay(input:  RayCastInput) bool {
+pub inline fn isValidRay(input: RayCastInput) bool {
     return native.b2IsValidRay(@ptrCast(&input));
 }
 
-pub inline fn makePolygon(hull:  Hull, radius: f32) Polygon {
+pub inline fn makePolygon(hull: Hull, radius: f32) Polygon {
     return @bitCast(native.b2MakePolygon(@ptrCast(&hull), radius));
 }
 
-pub inline fn makeOffsetPolygon(hull:  Hull, radius: f32, transform: Transform) Polygon {
+pub inline fn makeOffsetPolygon(hull: Hull, radius: f32, transform: Transform) Polygon {
     return @bitCast(native.b2MakeOffsetPolygon(@ptrCast(&hull), radius, @bitCast(transform)));
 }
 
@@ -882,79 +882,79 @@ pub inline fn makeOffsetBox(hx: f32, hy: f32, center: Vec2, angle: f32) Polygon 
     return @bitCast(native.b2MakeOffsetBox(hx, hy, center, angle));
 }
 
-pub inline fn transformPolygon(transform: Transform, polygon:  Polygon) Polygon {
+pub inline fn transformPolygon(transform: Transform, polygon: Polygon) Polygon {
     return @bitCast(native.b2TransformPolygon(@bitCast(transform), @ptrCast(&polygon)));
 }
 
-pub inline fn computeCircleMass(shape:  Circle, density: f32) MassData {
+pub inline fn computeCircleMass(shape: Circle, density: f32) MassData {
     return @bitCast(native.b2ComputeCircleMass(@ptrCast(&shape), density));
 }
 
-pub inline fn computeCapsuleMass(shape:  Capsule, density: f32) MassData {
+pub inline fn computeCapsuleMass(shape: Capsule, density: f32) MassData {
     return @bitCast(native.b2ComputeCapsuleMass(@ptrCast(&shape), density));
 }
 
-pub inline fn computePolygonMass(shape:  Polygon, density: f32) MassData {
+pub inline fn computePolygonMass(shape: Polygon, density: f32) MassData {
     return @bitCast(native.b2ComputePolygonMass(@ptrCast(&shape), density));
 }
 
-pub inline fn computeCircleAABB(shape:  Circle, transform: Transform) AABB {
+pub inline fn computeCircleAABB(shape: Circle, transform: Transform) AABB {
     return @bitCast(native.b2ComputeCircleAABB(@ptrCast(&shape), @bitCast(transform)));
 }
 
-pub inline fn computeCapsuleAABB(shape:  Capsule, transform: Transform) AABB {
+pub inline fn computeCapsuleAABB(shape: Capsule, transform: Transform) AABB {
     return @bitCast(native.b2ComputeCapsuleAABB(@ptrCast(&shape), @bitCast(transform)));
 }
 
-pub inline fn computePolygonAABB(shape:  Polygon, transform: Transform) AABB {
+pub inline fn computePolygonAABB(shape: Polygon, transform: Transform) AABB {
     return @bitCast(native.b2ComputePolygonAABB(@ptrCast(&shape), @bitCast(transform)));
 }
 
-pub inline fn computeSegmentAABB(shape:  Segment, transform: Transform) AABB {
+pub inline fn computeSegmentAABB(shape: Segment, transform: Transform) AABB {
     return @bitCast(native.b2ComputeSegmentAABB(@ptrCast(&shape), @bitCast(transform)));
 }
 
-pub inline fn pointInCircle(point: Vec2, shape:  Circle) bool {
+pub inline fn pointInCircle(point: Vec2, shape: Circle) bool {
     return native.b2PointInCircle(@bitCast(point), @ptrCast(&shape));
 }
 
-pub inline fn pointInCapsule(point: Vec2, shape:  Capsule) bool {
+pub inline fn pointInCapsule(point: Vec2, shape: Capsule) bool {
     return native.b2PointInCapsule(@bitCast(point), @ptrCast(&shape));
 }
 
-pub inline fn pointInPolygon(point: Vec2, shape:  Polygon) bool {
+pub inline fn pointInPolygon(point: Vec2, shape: Polygon) bool {
     return native.b2PointInPolygon(@bitCast(point), @ptrCast(&shape));
 }
 
-pub inline fn rayCastCircle(input:  RayCastInput, shape:  Circle) CastOutput {
+pub inline fn rayCastCircle(input: RayCastInput, shape: Circle) CastOutput {
     return @bitCast(native.b2RayCastCircle(@ptrCast(&input), @ptrCast(&shape)));
 }
 
-pub inline fn rayCastCapsule(input:  RayCastInput, shape:  Capsule) CastOutput {
+pub inline fn rayCastCapsule(input: RayCastInput, shape: Capsule) CastOutput {
     return @bitCast(native.b2RayCastCapsule(@ptrCast(&input), @ptrCast(&shape)));
 }
 
-pub inline fn rayCastSegment(input:  RayCastInput, shape:  Segment, oneSided: bool) CastOutput {
+pub inline fn rayCastSegment(input: RayCastInput, shape: Segment, oneSided: bool) CastOutput {
     return @bitCast(native.b2RayCastSegment(@ptrCast(&input), @ptrCast(&shape), oneSided));
 }
 
-pub inline fn rayCastPolygon(input:  RayCastInput, shape:  Polygon) CastOutput {
+pub inline fn rayCastPolygon(input: RayCastInput, shape: Polygon) CastOutput {
     return @bitCast(native.b2RayCastPolygon(@ptrCast(&input), @ptrCast(&shape)));
 }
 
-pub inline fn shapeCastCircle(input:  ShapeCastInput, shape:  Circle) CastOutput {
+pub inline fn shapeCastCircle(input: ShapeCastInput, shape: Circle) CastOutput {
     return @bitCast(native.b2ShapeCastCircle(@ptrCast(&input), @ptrCast(&shape)));
 }
 
-pub inline fn shapeCastCapsule(input:  ShapeCastInput, shape:  Capsule) CastOutput {
+pub inline fn shapeCastCapsule(input: ShapeCastInput, shape: Capsule) CastOutput {
     return @bitCast(native.b2ShapeCastCapsule(@ptrCast(&input), @ptrCast(&shape)));
 }
 
-pub inline fn shapeCastSegment(input:  ShapeCastInput, shape:  Segment) CastOutput {
+pub inline fn shapeCastSegment(input: ShapeCastInput, shape: Segment) CastOutput {
     return @bitCast(native.b2ShapeCastSegment(@ptrCast(&input), @ptrCast(&shape)));
 }
 
-pub inline fn shapeCastPolygon(input:  ShapeCastInput, shape:  Polygon) CastOutput {
+pub inline fn shapeCastPolygon(input: ShapeCastInput, shape: Polygon) CastOutput {
     return @bitCast(native.b2ShapeCastPolygon(@ptrCast(&input), @ptrCast(&shape)));
 }
 
