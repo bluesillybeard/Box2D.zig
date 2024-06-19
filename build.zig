@@ -45,6 +45,21 @@ pub fn build(b: *std.Build) !void {
     const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
     const sharedLibStep = b.step("shared", "Build a shared library of box2d");
     sharedLibStep.dependOn(&sharedLibArtifact.step);
+    const installHeadersStep = addInstallHeaders(b, "./");
+    staticLibStep.dependOn(installHeadersStep);
+    sharedLibStep.dependOn(installHeadersStep);
+
+}
+
+fn addInstallHeaders(b: *std.Build, comptime modulePath: []const u8) *std.Build.Step {
+    const step = b.step("headers", "Copy headers to output directory. Automatically done when building static or shared library.");
+    step.dependOn(&b.addInstallDirectory(.{
+        .install_dir = .header,
+        .source_dir = b.path(modulePath ++ "/box2c/include/"),
+        .install_subdir = "",
+    }).step);
+    // step.dependOn(&b.addInstallHeaderFile(b.path(modulePath ++ "/box2c/include/box2d/api.h"), "api.h").step);
+    return step;
 }
 
 pub const Box2dOptions = struct {
