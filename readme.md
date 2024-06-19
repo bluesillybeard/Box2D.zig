@@ -27,7 +27,7 @@ This also probably works using Zigs package `build.zig.zon` thing, however I hav
 
 ## Other notes
 
-The binding is under heavy work, so it's quite unstable at the moment. For now, I recomend using the native option (`@import("box2d").native`) until the binding is in a stable state. Hopefully, the binding will be ready for general use before the end of this summer. (I would say next week but I have a lot of other projects)
+The binding is under heavy work, so it's quite unstable at the moment. For now, I recomend using the native option (`@import("box2d").native`) until the binding is in a stable state. I am a busy person, so it may take a while.
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
@@ -36,7 +36,6 @@ The binding is under heavy work, so it's quite unstable at the moment. For now, 
     - add generics and stuff where reasonable (Stage 4)
         - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
     - Copy and tweak inline documentation from Box2D
-        - This is done last since the documentation is a work in progress
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:
@@ -46,3 +45,4 @@ When we update the Box2D version, we need to do this set of steps:
     - Documentation changes
     - build system changes.
 - Pull from git and apply the noted changes to the binding.
+- I know this is tedious, but we probably won't need to update that often.
