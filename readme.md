@@ -1,6 +1,6 @@
 # Box2d.zig
 
-Box2D v3 for the Zig programming language.
+Box2D v3 for the Zig programming language. Can also be used to make cross-compiling Box2D easier.
 
 Tested on zig stable (currently 0.13.0) and master (0.14.0-dev.xyz). See the commit history for which version of zig master was last tested. It also probably works with the Mach nominated version of Zig, however it is not explicitly tested with that.
 
@@ -23,7 +23,7 @@ const box2dModule = box2d.addModule(b, "Box2D.zig", .{});
 exe.root_module.addImport("box2d", box2dModule);
 ```
 
-This also probably works using Zigs package `build.zig.zon` thing, however I have not tested it yet.
+This also probably works using Zigs package `build.zig.zon` thing, however I have not tested it yet as I don't use that system for any of my own projects.
 
 ## Other notes
 
@@ -37,7 +37,6 @@ The binding is under heavy work, so it's quite unstable at the moment. For now, 
         - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
     - Copy and tweak inline documentation from Box2D
         - This is done last since the documentation is a work in progress
-- copy headers to the build output
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:

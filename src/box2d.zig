@@ -11,13 +11,14 @@ pub const native = @import("box2dnative.zig");
 // The translated functions should use proxy functions to avoid the calling convention restriction and allow context generics
 pub const CastResultFn = fn (shape: ShapeId, pos: Vec2, normal: Vec2, fraction: f32, context: ?*anyopaque) callconv(.C) f32;
 pub const PreSolveFn = fn (shapeIdA: ShapeId, shapeIdB: ShapeId, manifold: *Manifold, context: ?*anyopaque) callconv(.C) bool;
-pub const b2TreeQueryCallbackFn = fn (proxyId: i32, userData: i32, context: ?*anyopaque) callconv(.C) bool;
-pub const b2TreeRayCastCallbackFn = fn (*const RayCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
-pub const b2TreeShapeCastCallbackFn = fn (*const ShapeCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
+pub const TreeQueryCallbackFn = fn (proxyId: i32, userData: i32, context: ?*anyopaque) callconv(.C) bool;
+pub const TreeRayCastCallbackFn = fn (*const RayCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
+pub const TreeShapeCastCallbackFn = fn (*const ShapeCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
 pub const OverlapResultFn = fn (shape: ShapeId, context: ?*anyopaque) callconv(.C) bool;
 pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) *anyopaque;
 pub const FreeFn = fn (mem: *anyopaque) callconv(.C) void;
 pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
+pub const TaskCallback = fn (i32, i32, u32, ?*anyopaque) callconv(.C) void;
 
 pub const Circle = native.b2Circle;
 pub const RayResult = native.b2RayResult;
@@ -42,7 +43,6 @@ pub const PrismaticJointDef = native.b2PrismaticJointDef;
 pub const RevoluteJointDef = native.b2RevoluteJointDef;
 pub const WeldJointDef = native.b2WeldJointDef;
 pub const WheelJointDef = native.b2WheelJointDef;
-pub const Color = native.b2Color;
 pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
 pub const DistanceCache = native.b2DistanceCache;
 pub const DistanceInput = native.b2DistanceInput;
@@ -66,6 +66,12 @@ pub const QueryFilter = native.b2QueryFilter;
 pub const ShapeId = native.b2ShapeId;
 pub const TOIInput = native.b2TOIInput;
 pub const TOIOutput = native.b2TOIOutput;
+pub const TOIState = native.b2TOIState;
+pub const Version = native.b2Version;
+pub const TreeNode = native.b2TreeNode;
+
+pub const defaultCategoryBits = native.b2_defaultCategoryBits;
+pub const defaultMaskBits = native.b2_defaultMaskBits;
 
 // Types that have been translated
 
@@ -118,24 +124,24 @@ pub const WorldId = extern struct {
         native.b2World_OverlapPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
     }
 
-    pub inline fn rayCast(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_RayCast(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castRay(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_CastRay(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
     pub inline fn rayCastClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
         return @bitCast(native.b2World_RayCastClosest(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter)));
     }
 
-    pub inline fn circleCast(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CircleCast(@bitCast(worldId), @ptrCast(&circle), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castCircle(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_CastCircle(@bitCast(worldId), @ptrCast(&circle), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
-    pub inline fn capsuleCast(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CapsuleCast(@bitCast(worldId), @ptrCast(&capsule), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castCapsule(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_CastCapsule(@bitCast(worldId), @ptrCast(&capsule), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
-    pub inline fn polygonCast(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_PolygonCast(@bitCast(worldId), @ptrCast(&polygon), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castPolygon(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
+        native.b2World_CastPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
     }
 
     pub inline fn enableSleeping(worldId: WorldId, flag: bool) void {
@@ -193,41 +199,42 @@ pub const WorldId = extern struct {
     index1: u16,
     revision: u16,
 };
-// The default values were copied from b2DefaultWorldDef
-// MAINTAIN: Make sure the defaults here stay in line with Box2D
 pub const WorldDef = extern struct {
-    gravity: Vec2 = .{ .x = 0, .y = -10 },
-    // lengthUnitsPerMeter will likely never be moved out of native,
-    // However I want to redeclare it in zig. TODO: re-declare in zig
-    restitutionThreshold: f32 = 1 * native.b2_lengthUnitsPerMeter,
-    contactPushoutVelocity: f32 = 3 * native.b2_lengthUnitsPerMeter,
-    hitEventThreshold: f32 = 1 * native.b2_lengthUnitsPerMeter,
-    contactHertz: f32 = 30,
-    contactDampingRatio: f32 = 10,
-    jointHertz: f32 = 60,
-    jointDampingRatio: f32 = 2,
-    enableSleep: bool = true,
-    enableContinous: bool = true,
-    workerCount: i32 = 0,
-    // TODO: convert these callbacks manually
-    enqueueTask: ?*const native.b2EnqueueTaskCallback = null,
-    finishTask: ?*const native.b2FinishTaskCallback = null,
-    userTaskContext: ?*anyopaque = null,
+    gravity: Vec2,
+    restitutionThreshold: f32,
+    contactPushoutVelocity: f32,
+    hitEventThreshold: f32,
+    contactHertz: f32,
+    contactDampingRatio: f32,
+    jointHertz: f32,
+    jointDampingRatio: f32,
+    enableSleep: bool,
+    enableContinous: bool,
+    workerCount: i32,
+    // TODO: convert these callbacks manually & maybe make a wrapper?
+    enqueueTask: ?*const native.b2EnqueueTaskCallback,
+    finishTask: ?*const native.b2FinishTaskCallback,
+    userTaskContext: ?*anyopaque,
+    internalValue: i32,
+
+    pub inline fn default() WorldDef {
+        return @bitCast(native.b2DefaultWorldDef());
+    }
 };
 pub const Transform = extern struct {
-    pub inline fn transformPoint(xf: Transform, p: Vec2) Vec2 {
+    pub inline fn transformPoint(t: Transform, p: Vec2) Vec2 {
         return Vec2{
-            .x = ((xf.q.c * p.x) - (xf.q.s * p.y)) + xf.p.x,
-            .y = ((xf.q.s * p.x) + (xf.q.c * p.y)) + xf.p.y,
+            .x = ((t.q.c * p.x) - (t.q.s * p.y)) + t.p.x,
+            .y = ((t.q.s * p.x) + (t.q.c * p.y)) + t.p.y,
         };
     }
 
-    pub inline fn invTransformPoint(xf: Transform, p: Vec2) Vec2 {
-        const vx: f32 = p.x - xf.p.x;
-        const vy: f32 = p.y - xf.p.y;
+    pub inline fn invTransformPoint(t: Transform, p: Vec2) Vec2 {
+        const vx: f32 = p.x - t.p.x;
+        const vy: f32 = p.y - t.p.y;
         return Vec2{
-            .x = (xf.q.c * vx) + (xf.q.s * vy),
-            .y = (-xf.q.s * vx) + (xf.q.c * vy),
+            .x = (t.q.c * vx) + (t.q.s * vy),
+            .y = (-t.q.s * vx) + (t.q.c * vy),
         };
     }
 
@@ -782,6 +789,14 @@ pub inline fn getByteCount() usize {
     return @intCast(native.b2GetByteCount());
 }
 
+pub inline fn setLengthUnitsPerMeter(lengthUnits: f32) void {
+    native.b2SetLengthUnitsPerMeter(lengthUnits);
+}
+
+pub inline fn getLengthUnitsPerMeter() f32 {
+    return native.b2GetLengthUnitsPerMeter();
+}
+
 // Functions that have not been fully translated
 
 pub inline fn defaultBodyDef() BodyDef {
@@ -793,7 +808,7 @@ pub inline fn defaultFilter() Filter {
 }
 
 pub inline fn defaultQueryFilter() QueryFilter {
-    return @bitCast(native.b2DefaultFilter());
+    return @bitCast(native.b2DefaultQueryFilter());
 }
 
 pub inline fn defaultShapeDef() ShapeDef {
@@ -991,7 +1006,7 @@ pub inline fn setAllocator(alloc: *AllocFn, free: *FreeFn) void {
 }
 
 pub inline fn timeOfImpact(input: TOIInput) TOIOutput {
-    return native.b2TimeOfImpact(&input);
+    return native.b2TimeOfImpact(@ptrCast(&input));
 }
 
 pub inline fn setAssertFn(assertFn: *AssertFn) void {
@@ -1266,8 +1281,12 @@ pub inline fn jointWakeBodies(jointId: JointId) void {
     native.b2Joint_WakeBodies(@bitCast(jointId));
 }
 
-pub inline fn distanceJointGetConstraintForce(jointId: JointId, timeStep: f32) f32 {
-    return native.b2DistanceJoint_GetConstraintForce(@bitCast(jointId), timeStep);
+pub inline fn jointGetConstraintForce(jointId: JointId) void {
+    native.b2Joint_GetConstraintForce(@bitCast(jointId));
+}
+
+pub inline fn jointGetConstraintTorque(jointId: JointId) void {
+    native.b2Joint_GetConstraintTorque(@bitCast(jointId));
 }
 
 pub inline fn distanceJointSetLength(jointId: JointId, length: f32) void {
@@ -1394,14 +1413,6 @@ pub inline fn motorJointGetCorrectionFactor(jointId: JointId) f32 {
     return native.b2MotorJoint_GetCorrectionFactor(@bitCast(jointId));
 }
 
-pub inline fn motorJointGetConstraintForce(jointId: JointId) Vec2 {
-    return @bitCast(native.b2MotorJoint_GetConstraintForce(@bitCast(jointId)));
-}
-
-pub inline fn motorJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2MotorJoint_GetConstraintTorque(@bitCast(jointId));
-}
-
 pub inline fn mouseJointSetTarget(jointId: JointId, target: Vec2) void {
     native.b2MouseJoint_SetTarget(@bitCast(jointId), @bitCast(target));
 }
@@ -1414,16 +1425,24 @@ pub inline fn mouseJointSetSpringHertz(jointId: JointId, hertz: f32) void {
     native.b2MouseJoint_SetSpringHertz(@bitCast(jointId), hertz);
 }
 
+pub inline fn mouseJointGetSpringHertz(jointId: JointId) f32 {
+    return native.b2MouseJoint_GetSpringHertz(@bitCast(jointId));
+}
+
+pub inline fn mouseJointSetMaxForce(jointId: JointId, maxForce: f32) void {
+    native.b2MouseJoint_SetMaxForce(@bitCast(jointId), maxForce);
+}
+
+pub inline fn mouseJointGetMaxForce(jointId: JointId) f32 {
+    return native.b2MouseJoint_GetMaxForce(@bitCast(jointId));
+}
+
 pub inline fn mouseJointSetSpringDampingRatio(jointId: JointId, dampingRatio: f32) void {
     native.b2MouseJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
 }
 
-pub inline fn mouseJointGetHertz(jointId: JointId) f32 {
-    return native.b2MouseJoint_GetHertz(@bitCast(jointId));
-}
-
-pub inline fn mouseJointGetDampingRatio(jointId: JointId) f32 {
-    return native.b2MouseJoint_GetDampingRatio(@bitCast(jointId));
+pub inline fn mouseJointGetSpringDampingRatio(jointId: JointId) f32 {
+    return native.b2MouseJoint_GetSpringDampingRatio(@bitCast(jointId));
 }
 
 pub inline fn prismaticJointEnableSpring(jointId: JointId, enableSpring: bool) void {
@@ -1498,14 +1517,6 @@ pub inline fn prismaticJointGetMaxMotorForce(jointId: JointId) f32 {
     return native.b2PrismaticJoint_GetMaxMotorForce(@bitCast(jointId));
 }
 
-pub inline fn prismaticJointGetConstraintForce(jointId: JointId) Vec2 {
-    return @bitCast(native.b2PrismaticJoint_GetConstraintForce(@bitCast(jointId)));
-}
-
-pub inline fn prismaticJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2PrismaticJoint_GetConstraintTorque(@bitCast(jointId));
-}
-
 pub inline fn revoluteJointEnableSpring(jointId: JointId, enableSpring: bool) void {
     native.b2RevoluteJoint_EnableSpring(@bitCast(jointId), enableSpring);
 }
@@ -1578,14 +1589,6 @@ pub inline fn revoluteJointGetMaxMotorTorque(jointId: JointId) f32 {
     return native.b2RevoluteJoint_GetMaxMotorTorque(@bitCast(jointId));
 }
 
-pub inline fn revoluteJointGetConstraintForce(jointId: JointId) Vec2 {
-    return @bitCast(native.b2RevoluteJoint_GetConstraintForce(@bitCast(jointId)));
-}
-
-pub inline fn revoluteJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2RevoluteJoint_GetConstraintTorque(@bitCast(jointId));
-}
-
 pub inline fn wheelJointEnableSpring(jointId: JointId, enableSpring: bool) void {
     native.b2WheelJoint_EnableSpring(@bitCast(jointId), enableSpring);
 }
@@ -1647,7 +1650,7 @@ pub inline fn wheelJointGetMotorSpeed(jointId: JointId) f32 {
 }
 
 pub inline fn wheelJointGetMotorTorque(jointId: JointId) f32 {
-    return wheelJointGetMotorTorque(@bitCast(jointId));
+    return native.b2WheelJoint_GetMotorTorque(@bitCast(jointId));
 }
 
 pub inline fn wheelJointSetMaxMotorTorque(jointId: JointId, torque: f32) void {
@@ -1656,14 +1659,6 @@ pub inline fn wheelJointSetMaxMotorTorque(jointId: JointId, torque: f32) void {
 
 pub inline fn wheelJointGetMaxMotorTorque(jointId: JointId) f32 {
     return native.b2WheelJoint_GetMaxMotorTorque(@bitCast(jointId));
-}
-
-pub inline fn wheelJointGetConstraintForce(jointId: JointId) Vec2 {
-    return @bitCast(native.b2WheelJoint_GetConstraintForce(@bitCast(jointId)));
-}
-
-pub inline fn wheelJointGetConstraintTorque(jointId: JointId) f32 {
-    return native.b2WheelJoint_GetConstraintTorque(@bitCast(jointId));
 }
 
 pub inline fn weldJointSetLinearHertz(jointId: JointId, hertz: f32) void {
@@ -1696,26 +1691,6 @@ pub inline fn weldJointSetAngularDampingRatio(jointId: JointId, dampingRatio: f3
 
 pub inline fn weldJointGetAngularDampingRatio(jointId: JointId) f32 {
     return native.b2WeldJoint_GetAngularDampingRatio(@bitCast(jointId));
-}
-
-// TODO: color hex code enum (well, in Zig an enum would be a bad choice, but you get the idea)
-// TODO: apparently these color functions are going to be removed.
-
-pub inline fn makeColor(hexCode: u32) Color {
-    var color: Color = undefined;
-    color.r = @as(f32, @floatFromInt((hexCode >> 16) & 255)) / 255.0;
-    color.g = @as(f32, @floatFromInt((hexCode >> 8) & 255)) / 255.0;
-    color.b = @as(f32, @floatFromInt(hexCode & 255)) / 255.0;
-    color.a = 1.0;
-    return color;
-}
-pub inline fn makeColorAlpha(hexCode: u32, alpha: f32) Color {
-    var color: Color = undefined;
-    color.r = @as(f32, @floatFromInt((hexCode >> 16) & 255)) / 255.0;
-    color.g = @as(f32, @floatFromInt((hexCode >> 8) & 255)) / 255.0;
-    color.b = @as(f32, @floatFromInt(hexCode & 255)) / 255.0;
-    color.a = alpha;
-    return color;
 }
 
 pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDistanceResult {
@@ -1766,19 +1741,19 @@ pub inline fn dynamicTreeEnlargeProxy(tree: *DynamicTree, proxyId: i32, aabb: AA
     native.b2DynamicTree_EnlargeProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
 }
 
-pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const b2TreeQueryCallbackFn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const TreeQueryCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_QueryFiltered(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
 }
 
-pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const b2TreeQueryCallbackFn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), @ptrCast(callback), @ptrCast(context));
 }
 
-pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const b2TreeRayCastCallbackFn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
 }
 
-pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const b2TreeShapeCastCallbackFn, context: ?*anyopaque) void {
+pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) void {
     native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
 }
 
@@ -1815,7 +1790,6 @@ pub inline fn dynamicTreeShiftOrigin(tree: *DynamicTree, newOrigin: Vec2) void {
 }
 
 pub inline fn dynamicTreeGetByteCount(tree: DynamicTree) c_int {
-    // TODO is there a const cast error here?
     return native.b2DynamicTree_GetByteCount(@ptrCast(&tree));
 }
 
@@ -1899,21 +1873,32 @@ pub inline fn createTimer() Timer {
     return @bitCast(native.b2CreateTimer());
 }
 // TODO: should parameter be const?
+
 pub inline fn getTicks(timer: *Timer) i64 {
     return native.b2GetTicks(@ptrCast(timer));
 }
+
 pub inline fn getMilliseconds(timer: Timer) f32 {
     return native.b2GetMilliseconds(@ptrCast(&timer));
 }
+
 pub inline fn getMillisecondsAndReset(timer: *Timer) f32 {
     return native.b2GetMillisecondsAndReset(@ptrCast(timer));
 }
+
 pub inline fn sleepMilliseconds(milliseconds: c_int) void {
     native.b2SleepMilliseconds(milliseconds);
 }
+
 pub inline fn yield() void {
     native.b2Yield();
 }
+
+pub inline fn getVersion() Version {
+    return @bitCast(native.b2GetVersion());
+}
+
+
 
 // This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
 fn recursivelyRefAllDeclsExceptNative(T: type) void {
@@ -2010,7 +1995,6 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(RevoluteJointDef, native.b2RevoluteJointDef));
     try std.testing.expect(structsAreABICompatible(WeldJointDef, native.b2WeldJointDef));
     try std.testing.expect(structsAreABICompatible(WheelJointDef, native.b2WheelJointDef));
-    try std.testing.expect(structsAreABICompatible(Color, native.b2Color));
     try std.testing.expect(structsAreABICompatible(SegmentDistanceResult, native.b2SegmentDistanceResult));
     try std.testing.expect(structsAreABICompatible(DistanceCache, native.b2DistanceCache));
     try std.testing.expect(structsAreABICompatible(DistanceInput, native.b2DistanceInput));
