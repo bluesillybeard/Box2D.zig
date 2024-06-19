@@ -14,7 +14,7 @@ Of course, you're probably here to use your project with Zig. I recomend using a
 
 In your `build.zig`
 ```zig
-const box2d = @import('Box2D.zig/build.zig);
+const box2d = @import("Box2D.zig/build.zig");
 
 ...
 
