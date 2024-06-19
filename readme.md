@@ -37,6 +37,7 @@ The binding is under heavy work, so it's quite unstable at the moment. For now, 
         - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
     - Copy and tweak inline documentation from Box2D
         - This is done last since the documentation is a work in progress
+- copy headers to the build output
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:

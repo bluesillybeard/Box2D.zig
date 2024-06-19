@@ -11,7 +11,7 @@ pub fn build(b: *std.Build) !void {
 
     // test runner
     const t = b.addTest(.{
-        .root_source_file = .{ .path = "src/box2d.zig" },
+        .root_source_file = b.path("src/box2d.zig"),
         .target = target,
         .optimize = optimize,
         .link_libc = true,
@@ -42,18 +42,9 @@ pub fn build(b: *std.Build) !void {
         .link_libc = true,
     });
     sharedLib.root_module.addImport("box2d", box2dModule);
-
     const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
     const sharedLibStep = b.step("shared", "Build a shared library of box2d");
     sharedLibStep.dependOn(&sharedLibArtifact.step);
-
-    // TODO: once ZLS fixes header directories not working correctly for modules, remove this garbage
-    // TODO: actually submit an issue to ZLS about this, since apparently nobody else has yet
-    {
-        const stupid = b.addStaticLibrary(.{ .root_source_file = .{ .path = "src/box2d.zig" }, .name = "stupid", .target = target, .optimize = optimize });
-        try link("./", &stupid.root_module, .{});
-        b.installArtifact(stupid);
-    }
 }
 
 pub const Box2dOptions = struct {
@@ -64,7 +55,7 @@ pub const Box2dOptions = struct {
 /// Adds the box2d module and returns it.
 pub fn addModule(b: *std.Build, comptime modulePath: []const u8, options: Box2dOptions) !*std.Build.Module {
     const module = b.addModule("box2d", .{
-        .root_source_file = .{ .path = modulePath ++ "/src/box2d.zig" },
+        .root_source_file = b.path(modulePath ++ "/src/box2d.zig"),
         .target = options.target,
         .optimize = options.optimize,
     });
@@ -138,6 +129,6 @@ fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOpt
         },
         .flags = try args.toOwnedSlice(),
     });
-    c.addIncludePath(.{ .path = modulePath ++ "/box2c/include/" });
+    c.addIncludePath(c.owner.path(modulePath ++ "/box2c/include/"));
     c.link_libc = true;
 }
