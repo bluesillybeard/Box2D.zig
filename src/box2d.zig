@@ -25,13 +25,44 @@ pub const RayResult = native.b2RayResult;
 pub const Manifold = native.b2Manifold;
 pub const Profile = native.b2Profile;
 pub const Counters = native.b2Counters;
-pub const BodyDef = native.b2BodyDef;
+// TODO: type check user data
+pub const BodyDef = extern struct {
+    type: BodyType,
+    position: Vec2,
+    angle: f32,
+    linearVelocity: Vec2,
+    angularVelocity: f32,
+    linearDamping: f32,
+    angularDamping: f32,
+    gravityScale: f32,
+    sleepThreshold: f32,
+    userData: ?*anyopaque,
+    enableSleep: bool,
+    isAwake: bool,
+    fixedRotation: bool,
+    isBullet: bool,
+    isEnabled: bool,
+    automaticMass: bool,
+    internalValue: i32,
+
+    pub inline fn default() BodyDef {
+        return @bitCast(native.b2DefaultBodyDef());
+    }
+};
 pub const MassData = native.b2MassData;
 pub const JointId = native.b2JointId;
 pub const ContactData = native.b2ContactData;
 pub const ShapeDef = native.b2ShapeDef;
 pub const Segment = native.b2Segment;
-pub const Filter = native.b2Filter;
+pub const Filter = extern struct {
+    categoryBits: u32,
+    maskBits: u32,
+    groupIndex: i32,
+    
+    pub inline fn default() Filter {
+        return @bitCast(native.b2DefaultFilter());
+    }
+};
 pub const CastOutput = native.b2CastOutput;
 pub const SmoothSegment = native.b2SmoothSegment;
 pub const ChainId = native.b2ChainId;
@@ -61,8 +92,57 @@ pub const DebugDraw = native.b2DebugDraw;
 pub const BodyEvents = native.b2BodyEvents;
 pub const SensorEvents = native.b2SensorEvents;
 pub const ContactEvents = native.b2ContactEvents;
-pub const AABB = native.b2AABB;
-pub const QueryFilter = native.b2QueryFilter;
+pub const AABB = extern struct {
+    lowerBound: Vec2,
+    upperBound: Vec2,
+
+    pub inline fn contains(a: AABB, b: AABB) bool {
+        var s: bool = @as(c_int, 1) != 0;
+        s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.x <= b.lowerBound.x);
+        s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.y <= b.lowerBound.y);
+        s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.x <= a.upperBound.x);
+        s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.y <= a.upperBound.y);
+        return s;
+    }
+
+    pub inline fn center(a: AABB) Vec2 {
+        const b: Vec2 = Vec2{
+            .x = 0.5 * (a.lowerBound.x + a.upperBound.x),
+            .y = 0.5 * (a.lowerBound.y + a.upperBound.y),
+        };
+        return b;
+    }
+
+    pub inline fn extents(a: AABB) Vec2 {
+        const b: Vec2 = Vec2{
+            .x = 0.5 * (a.upperBound.x - a.lowerBound.x),
+            .y = 0.5 * (a.upperBound.y - a.lowerBound.y),
+        };
+        return b;
+    }
+
+    /// Renamed from `union` due to a conflict with the union keyword
+    pub inline fn add(a: AABB, b: AABB) AABB {
+        var c: AABB = undefined;
+        c.lowerBound.x = @min(a.lowerBound.x, b.lowerBound.x);
+        c.lowerBound.y = @min(a.lowerBound.y, b.lowerBound.y);
+        c.upperBound.x = @max(a.upperBound.x, b.upperBound.x);
+        c.upperBound.y = @max(a.upperBound.y, b.upperBound.y);
+        return c;
+    }
+
+    pub inline fn isValid(aabb: AABB) bool {
+        return native.b2AABB_IsValid(@bitCast(aabb));
+    }
+};
+pub const QueryFilter = extern struct {
+    categoryBits: u32,
+    maskBits: u32,
+
+    pub inline fn default() QueryFilter {
+        return @bitCast(native.b2DefaultQueryFilter());
+    }
+};
 pub const ShapeId = native.b2ShapeId;
 pub const TOIInput = native.b2TOIInput;
 pub const TOIOutput = native.b2TOIOutput;
@@ -393,6 +473,22 @@ pub const Vec2 = extern struct {
         const dx: f32 = b.x - a.x;
         const dy: f32 = b.y - a.y;
         return (dx * dx) + (dy * dy);
+    }
+
+    pub inline fn isValid(v: Vec2) bool {
+        return native.b2Vec2_IsValid(@bitCast(v));
+    }
+
+    pub inline fn normalize(v: Vec2) Vec2 {
+        return @bitCast(native.b2Normalize(@bitCast(v)));
+    }
+
+    pub inline fn normalizeChecked(v: Vec2) Vec2 {
+        return @bitCast(native.b2NormalizeChecked(@bitCast(v)));
+    }
+
+    pub inline fn getLengthAndNormalize(len: *f32, v: Vec2) Vec2 {
+        return @bitCast(native.b2GetLengthAndNormalize(@ptrCast(len), @bitCast(v)));
     }
 
     x: f32,
@@ -799,18 +895,6 @@ pub inline fn getLengthUnitsPerMeter() f32 {
 
 // Functions that have not been fully translated
 
-pub inline fn defaultBodyDef() BodyDef {
-    return @bitCast(native.b2DefaultBodyDef());
-}
-
-pub inline fn defaultFilter() Filter {
-    return @bitCast(native.b2DefaultFilter());
-}
-
-pub inline fn defaultQueryFilter() QueryFilter {
-    return @bitCast(native.b2DefaultQueryFilter());
-}
-
 pub inline fn defaultShapeDef() ShapeDef {
     return @bitCast(native.b2DefaultShapeDef());
 }
@@ -819,7 +903,7 @@ pub inline fn defaultChainDef() ChainDef {
     return @bitCast(native.b2DefaultChainDef());
 }
 
-// For the collision functions, it will require re-duplicating since I want to be able to to do cirlce.collideCapsule(capsule) as well as capsule.collideCircle(circle)
+// For the collision functions, it will require re-duplicating since I want to be able to to do circle.collideCapsule(capsule) as well as capsule.collideCircle(circle)
 
 pub inline fn collideCircles(circleA: Circle, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
     return @bitCast(native.b2CollideCircles(@ptrCast(&circleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
@@ -1817,89 +1901,10 @@ pub inline fn unwindAngle(angle: f32) f32 {
     }
     return angle;
 }
-pub inline fn AABBContains(a: AABB, b: AABB) bool {
-    var s: bool = @as(c_int, 1) != 0;
-    s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.x <= b.lowerBound.x);
-    s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.y <= b.lowerBound.y);
-    s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.x <= a.upperBound.x);
-    s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.y <= a.upperBound.y);
-    return s;
-}
-pub inline fn AABBCenter(a: AABB) Vec2 {
-    const b: Vec2 = Vec2{
-        .x = 0.5 * (a.lowerBound.x + a.upperBound.x),
-        .y = 0.5 * (a.lowerBound.y + a.upperBound.y),
-    };
-    return b;
-}
-pub inline fn AABB_Extents(a: AABB) Vec2 {
-    const b: Vec2 = Vec2{
-        .x = 0.5 * (a.upperBound.x - a.lowerBound.x),
-        .y = 0.5 * (a.upperBound.y - a.lowerBound.y),
-    };
-    return b;
-}
-pub inline fn AABB_Union(a: AABB, b: AABB) AABB {
-    var c: AABB = undefined;
-    c.lowerBound.x = @min(a.lowerBound.x, b.lowerBound.x);
-    c.lowerBound.y = @min(a.lowerBound.y, b.lowerBound.y);
-    c.upperBound.x = @max(a.upperBound.x, b.upperBound.x);
-    c.upperBound.y = @max(a.upperBound.y, b.upperBound.y);
-    return c;
-}
-
-pub inline fn vec2IsValid(v: Vec2) bool {
-    return native.b2Vec2_IsValid(@bitCast(v));
-}
-
-pub inline fn AABB_IsValid(aabb: AABB) bool {
-    return native.b2AABB_IsValid(@bitCast(aabb));
-}
-
-pub inline fn normalize(v: Vec2) Vec2 {
-    return @bitCast(native.b2Normalize(@bitCast(v)));
-}
-
-pub inline fn normalizeChecked(v: Vec2) Vec2 {
-    return @bitCast(native.b2NormalizeChecked(@bitCast(v)));
-}
-
-pub inline fn getLengthAndNormalize(length: *f32, v: Vec2) Vec2 {
-    return @bitCast(native.b2GetLengthAndNormalize(@ptrCast(length), @bitCast(v)));
-}
-
-// TODO: Do we need these functions? Check if the Zig standard library has suitable equivalents and Timer isn't used elsewhere.
-pub inline fn createTimer() Timer {
-    return @bitCast(native.b2CreateTimer());
-}
-// TODO: should parameter be const?
-
-pub inline fn getTicks(timer: *Timer) i64 {
-    return native.b2GetTicks(@ptrCast(timer));
-}
-
-pub inline fn getMilliseconds(timer: Timer) f32 {
-    return native.b2GetMilliseconds(@ptrCast(&timer));
-}
-
-pub inline fn getMillisecondsAndReset(timer: *Timer) f32 {
-    return native.b2GetMillisecondsAndReset(@ptrCast(timer));
-}
-
-pub inline fn sleepMilliseconds(milliseconds: c_int) void {
-    native.b2SleepMilliseconds(milliseconds);
-}
-
-pub inline fn yield() void {
-    native.b2Yield();
-}
 
 pub inline fn getVersion() Version {
     return @bitCast(native.b2GetVersion());
 }
-
-
-
 // This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
 fn recursivelyRefAllDeclsExceptNative(T: type) void {
     @setEvalBranchQuota(10000);
