@@ -81,7 +81,108 @@ pub const DistanceOutput = native.b2DistanceOutput;
 pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
 pub const DistanceProxy = native.b2DistanceProxy;
 pub const Sweep = native.b2Sweep;
-pub const DynamicTree = native.b2DynamicTree;
+pub const DynamicTree = extern struct {
+    nodes: [*]TreeNode,
+    root: i32,
+    nodeCount: i32,
+    nodeCapacity: i32,
+    freeList: i32,
+    proxyCount: i32,
+    leafIndices: [*]i32,
+    leafBoxes: [*]AABB,
+    leafCenters: [*]Vec2,
+    binIndices: [*]i32,
+    rebuildCapacity: i32,
+
+    pub inline fn create() DynamicTree {
+        return @bitCast(native.b2DynamicTree_Create());
+    }
+
+    pub inline fn destroy(tree: *DynamicTree) void {
+        native.b2DynamicTree_Destroy(@ptrCast(tree));
+    }
+
+    pub inline fn createProxy(tree: *DynamicTree, aabb: AABB, categoryBits: u32, userData: i32) i32 {
+        return native.b2DynamicTree_CreateProxy(@ptrCast(tree), @bitCast(aabb), categoryBits, userData);
+    }
+
+    pub inline fn destroyProxy(tree: *DynamicTree, proxyId: i32) void {
+        native.b2DynamicTree_DestroyProxy(@ptrCast(tree), proxyId);
+    }
+
+    pub inline fn clone(outTree: *DynamicTree, inTree: DynamicTree) void {
+        native.b2DynamicTree_Clone(@ptrCast(outTree), @ptrCast(&inTree));
+    }
+
+    pub inline fn moveProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
+        native.b2DynamicTree_MoveProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
+    }
+
+    pub inline fn enlargeProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
+        native.b2DynamicTree_EnlargeProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
+    }
+
+    // TODO: replace raw C callbacks with something more Zig friendly
+    pub inline fn queryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const TreeQueryCallbackFn, context: ?*anyopaque) void {
+        native.b2DynamicTree_QueryFiltered(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
+    }
+
+    pub inline fn query(tree: DynamicTree, aabb: AABB, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) void {
+        native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), @ptrCast(callback), @ptrCast(context));
+    }
+
+    pub inline fn rayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) void {
+        native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
+    }
+
+    pub inline fn shapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) void {
+        native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
+    }
+
+    pub inline fn validate(tree: DynamicTree) void {
+        native.b2DynamicTree_Validate(@ptrCast(&tree));
+    }
+
+    pub inline fn getHeight(tree: DynamicTree) i32 {
+        return native.b2DynamicTree_GetHeight(@ptrCast(&tree));
+    }
+
+    pub inline fn getMaxBalance(tree: DynamicTree) i32 {
+        return native.b2DynamicTree_GetMaxBalance(@ptrCast(&tree));
+    }
+
+    pub inline fn getAreaRatio(tree: DynamicTree) f32 {
+        return native.b2DynamicTree_GetAreaRatio(@ptrCast(&tree));
+    }
+
+    pub inline fn rebuildBottomUp(tree: *DynamicTree) void {
+        native.b2DynamicTree_RebuildBottomUp(@ptrCast(tree));
+    }
+
+    pub inline fn getProxyCount(tree: DynamicTree) i32 {
+        return native.b2DynamicTree_GetProxyCount(@ptrCast(&tree));
+    }
+
+    pub inline fn rebuild(tree: *DynamicTree, fullBuild: bool) i32 {
+        return native.b2DynamicTree_Rebuild(@ptrCast(tree), fullBuild);
+    }
+
+    pub inline fn shiftOrigin(tree: *DynamicTree, newOrigin: Vec2) void {
+        native.b2DynamicTree_ShiftOrigin(@ptrCast(tree), @bitCast(newOrigin));
+    }
+
+    pub inline fn getByteCount(tree: DynamicTree) usize {
+        return @intCast(native.b2DynamicTree_GetByteCount(@ptrCast(&tree)));
+    }
+
+    pub inline fn getUserData(tree: DynamicTree, proxyId: i32) i32 {
+        return tree.nodes[proxyId].userData;
+    }
+
+    pub inline fn getAABB(tree: DynamicTree, proxyId: i32) AABB {
+        return tree.nodes[proxyId].aabb;
+    }
+};
 pub const RayCastInput = native.b2RayCastInput;
 pub const ShapeCastInput = native.b2ShapeCastInput;
 pub const Hull = extern struct {
@@ -1806,94 +1907,6 @@ pub inline fn makeProxy(vertices: []const Vec2, radius: f32) DistanceProxy {
 
 pub inline fn getSweepTransform(sweep: Sweep, time: f32) Transform {
     return @bitCast(native.b2GetSweepTransform(@ptrCast(&sweep), time));
-}
-
-pub inline fn dynamicTreeCreate() DynamicTree {
-    return @bitCast(native.b2DynamicTree_Create());
-}
-
-pub inline fn dynamicTreeDestroy(tree: *DynamicTree) void {
-    native.b2DynamicTree_Destroy(@ptrCast(tree));
-}
-
-pub inline fn dynamicTreeCreateProxy(tree: *DynamicTree, aabb: AABB, categoryBits: u32, userData: i32) i32 {
-    return native.b2DynamicTree_CreateProxy(@ptrCast(tree), @bitCast(aabb), categoryBits, userData);
-}
-
-pub inline fn dynamicTreeDestroyProxy(tree: *DynamicTree, proxyId: i32) void {
-    native.b2DynamicTree_DestroyProxy(@ptrCast(tree), proxyId);
-}
-
-pub inline fn dynamicTreeClone(outTree: *DynamicTree, inTree: DynamicTree) void {
-    native.b2DynamicTree_Clone(@ptrCast(outTree), @ptrCast(&inTree));
-}
-
-pub inline fn dynamicTreeMoveProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
-    native.b2DynamicTree_MoveProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
-}
-
-pub inline fn dynamicTreeEnlargeProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
-    native.b2DynamicTree_EnlargeProxy(@ptrCast(tree), proxyId, @bitCast(aabb));
-}
-
-pub inline fn dynamicTreeQueryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const TreeQueryCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_QueryFiltered(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
-}
-
-pub inline fn dynamicTreeQuery(tree: DynamicTree, aabb: AABB, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), @ptrCast(callback), @ptrCast(context));
-}
-
-pub inline fn dynamicTreeRayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
-}
-
-pub inline fn dynamicTreeShapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) void {
-    native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
-}
-
-pub inline fn dynamicTreeValidate(tree: DynamicTree) void {
-    native.b2DynamicTree_Validate(@ptrCast(&tree));
-}
-
-pub inline fn dynamicTreeGetHeight(tree: DynamicTree) i32 {
-    return native.b2DynamicTree_GetHeight(@ptrCast(&tree));
-}
-
-pub inline fn dynamicTreeGetMaxBalance(tree: DynamicTree) i32 {
-    return native.b2DynamicTree_GetMaxBalance(@ptrCast(&tree));
-}
-
-pub inline fn dynamicTreeGetAreaRatio(tree: DynamicTree) f32 {
-    return native.b2DynamicTree_GetAreaRatio(@ptrCast(&tree));
-}
-
-pub inline fn dynamicTreeRebuildBottomUp(tree: *DynamicTree) void {
-    native.b2DynamicTree_RebuildBottomUp(@ptrCast(tree));
-}
-
-pub inline fn dynamicTreeGetProxyCount(tree: DynamicTree) i32 {
-    return native.b2DynamicTree_GetProxyCount(@ptrCast(&tree));
-}
-
-pub inline fn dynamicTreeRebuild(tree: *DynamicTree, fullBuild: bool) i32 {
-    return native.b2DynamicTree_Rebuild(@ptrCast(tree), fullBuild);
-}
-
-pub inline fn dynamicTreeShiftOrigin(tree: *DynamicTree, newOrigin: Vec2) void {
-    native.b2DynamicTree_ShiftOrigin(@ptrCast(tree), @bitCast(newOrigin));
-}
-
-pub inline fn dynamicTreeGetByteCount(tree: DynamicTree) c_int {
-    return native.b2DynamicTree_GetByteCount(@ptrCast(&tree));
-}
-
-pub inline fn dynamicTreeGetUserData(tree: DynamicTree, proxyId: i32) i32 {
-    return tree.nodes[proxyId].userData;
-}
-
-pub inline fn dynamicTreeGetAABB(tree: DynamicTree, proxyId: i32) AABB {
-    return tree.nodes[proxyId].aabb;
 }
 
 pub inline fn unwindAngle(angle: f32) f32 {
