@@ -84,7 +84,26 @@ pub const Sweep = native.b2Sweep;
 pub const DynamicTree = native.b2DynamicTree;
 pub const RayCastInput = native.b2RayCastInput;
 pub const ShapeCastInput = native.b2ShapeCastInput;
-pub const Hull = native.b2Hull;
+pub const Hull = extern struct {
+    points: [8]Vec2,
+    count: i32,
+
+    pub inline fn makePolygon(hull: Hull, radius: f32) Polygon {
+        return @bitCast(native.b2MakePolygon(@ptrCast(&hull), radius));
+    }
+
+    pub inline fn makeOffsetPolygon(hull: Hull, radius: f32, transform: Transform) Polygon {
+        return @bitCast(native.b2MakeOffsetPolygon(@ptrCast(&hull), radius, @bitCast(transform)));
+    }
+
+    pub inline fn compute(points: []const Vec2) Hull {
+        return @bitCast(native.b2ComputeHull(@ptrCast(points.ptr), @intCast(points.len)));
+    }
+
+    pub inline fn validate(hull: Hull) bool {
+        return native.b2ValidateHull(@ptrCast(&hull));
+    }
+};
 pub const Timer = native.b2Timer;
 pub const Capsule = native.b2Capsule;
 pub const Polygon = native.b2Polygon;
@@ -955,14 +974,6 @@ pub inline fn collideSmoothSegmentAndPolygon(smoothSegmentA: SmoothSegment, xfA:
 
 pub inline fn isValidRay(input: RayCastInput) bool {
     return native.b2IsValidRay(@ptrCast(&input));
-}
-
-pub inline fn makePolygon(hull: Hull, radius: f32) Polygon {
-    return @bitCast(native.b2MakePolygon(@ptrCast(&hull), radius));
-}
-
-pub inline fn makeOffsetPolygon(hull: Hull, radius: f32, transform: Transform) Polygon {
-    return @bitCast(native.b2MakeOffsetPolygon(@ptrCast(&hull), radius, @bitCast(transform)));
 }
 
 pub inline fn makeSquare(h: f32) Polygon {
@@ -1883,14 +1894,6 @@ pub inline fn dynamicTreeGetUserData(tree: DynamicTree, proxyId: i32) i32 {
 
 pub inline fn dynamicTreeGetAABB(tree: DynamicTree, proxyId: i32) AABB {
     return tree.nodes[proxyId].aabb;
-}
-
-pub inline fn computeHull(points: []const Vec2) Hull {
-    return @bitCast(native.b2ComputeHull(@ptrCast(points.ptr), @intCast(points.len)));
-}
-
-pub inline fn validateHull(hull: Hull) bool {
-    return native.b2ValidateHull(@ptrCast(&hull));
 }
 
 pub inline fn unwindAngle(angle: f32) f32 {
