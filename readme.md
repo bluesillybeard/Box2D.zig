@@ -19,6 +19,7 @@ const box2d = @import("Box2D.zig/build.zig");
 ...
 
 // This calls b.addModule, with the name as "box2d" and uses the binding for the source file
+// It then adds all of Box2Ds source files and the include directory to that module
 const box2dModule = box2d.addModule(b, "Box2D.zig", .{});
 exe.root_module.addImport("box2d", box2dModule);
 ```
@@ -31,11 +32,13 @@ The binding is under heavy work, so it's quite unstable at the moment. For now, 
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
+    - My only worry is with simd
 - Work on the actual binding
     - Move structs out of native and convert functions like `worldIsValid` to use the Zig "OOP-like" syntax: `world.isValid` (Stage 3)
     - add generics and stuff where reasonable (Stage 4)
         - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
     - Copy and tweak inline documentation from Box2D
+- Once the actual binding is in a good state, get this added to the Box2D bindings list.
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:
@@ -46,3 +49,6 @@ When we update the Box2D version, we need to do this set of steps:
     - build system changes.
 - Pull from git and apply the noted changes to the binding.
 - I know this is tedious, but we probably won't need to update that often.
+- To get all changes: `git diff main...origin/main > diff.diff`, open in vscode
+    - search for `diff --git a/include/.*\.h` for API, ABI, and documentation changes
+    - search for `diff --git a/.*\.txt` for build system changes

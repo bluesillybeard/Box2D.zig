@@ -25,11 +25,56 @@ pub const RayResult = native.b2RayResult;
 pub const Manifold = native.b2Manifold;
 pub const Profile = native.b2Profile;
 pub const Counters = native.b2Counters;
-// TODO: type check user data
+pub const MassData = native.b2MassData;
+pub const JointId = native.b2JointId;
+pub const ContactData = native.b2ContactData;
+pub const ShapeDef = native.b2ShapeDef;
+pub const Segment = native.b2Segment;
+pub const CastOutput = native.b2CastOutput;
+pub const SmoothSegment = native.b2SmoothSegment;
+pub const ChainId = native.b2ChainId;
+pub const ChainDef = native.b2ChainDef;
+pub const DistanceJointDef = native.b2DistanceJointDef;
+pub const MotorJointDef = native.b2MotorJointDef;
+pub const MouseJointDef = native.b2MouseJointDef;
+pub const PrismaticJointDef = native.b2PrismaticJointDef;
+pub const RevoluteJointDef = native.b2RevoluteJointDef;
+pub const WeldJointDef = native.b2WeldJointDef;
+pub const WheelJointDef = native.b2WheelJointDef;
+pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
+pub const DistanceCache = native.b2DistanceCache;
+pub const DistanceInput = native.b2DistanceInput;
+pub const DistanceOutput = native.b2DistanceOutput;
+pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
+pub const DistanceProxy = native.b2DistanceProxy;
+pub const Sweep = native.b2Sweep;
+pub const RayCastInput = native.b2RayCastInput;
+pub const ShapeCastInput = native.b2ShapeCastInput;
+pub const Timer = native.b2Timer;
+pub const Capsule = native.b2Capsule;
+pub const Polygon = native.b2Polygon;
+pub const DebugDraw = native.b2DebugDraw;
+pub const BodyEvents = native.b2BodyEvents;
+pub const SensorEvents = native.b2SensorEvents;
+pub const ContactEvents = native.b2ContactEvents;
+pub const ShapeId = native.b2ShapeId;
+pub const TOIInput = native.b2TOIInput;
+pub const TOIOutput = native.b2TOIOutput;
+pub const TOIState = native.b2TOIState;
+pub const Version = native.b2Version;
+pub const TreeNode = native.b2TreeNode;
+pub const SimplexVertex = native.b2SimplexVertex;
+pub const Simplex = native.b2Simplex;
+
+pub const defaultCategoryBits = native.b2_defaultCategoryBits;
+pub const defaultMaskBits = native.b2_defaultMaskBits;
+
+// Types that have been translated (fully or partially)
+
 pub const BodyDef = extern struct {
     type: BodyType,
     position: Vec2,
-    angle: f32,
+    rotation: Rot,
     linearVelocity: Vec2,
     angularVelocity: f32,
     linearDamping: f32,
@@ -49,11 +94,7 @@ pub const BodyDef = extern struct {
         return @bitCast(native.b2DefaultBodyDef());
     }
 };
-pub const MassData = native.b2MassData;
-pub const JointId = native.b2JointId;
-pub const ContactData = native.b2ContactData;
-pub const ShapeDef = native.b2ShapeDef;
-pub const Segment = native.b2Segment;
+
 pub const Filter = extern struct {
     categoryBits: u32,
     maskBits: u32,
@@ -63,24 +104,7 @@ pub const Filter = extern struct {
         return @bitCast(native.b2DefaultFilter());
     }
 };
-pub const CastOutput = native.b2CastOutput;
-pub const SmoothSegment = native.b2SmoothSegment;
-pub const ChainId = native.b2ChainId;
-pub const ChainDef = native.b2ChainDef;
-pub const DistanceJointDef = native.b2DistanceJointDef;
-pub const MotorJointDef = native.b2MotorJointDef;
-pub const MouseJointDef = native.b2MouseJointDef;
-pub const PrismaticJointDef = native.b2PrismaticJointDef;
-pub const RevoluteJointDef = native.b2RevoluteJointDef;
-pub const WeldJointDef = native.b2WeldJointDef;
-pub const WheelJointDef = native.b2WheelJointDef;
-pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
-pub const DistanceCache = native.b2DistanceCache;
-pub const DistanceInput = native.b2DistanceInput;
-pub const DistanceOutput = native.b2DistanceOutput;
-pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
-pub const DistanceProxy = native.b2DistanceProxy;
-pub const Sweep = native.b2Sweep;
+
 pub const DynamicTree = extern struct {
     nodes: [*]TreeNode,
     root: i32,
@@ -183,8 +207,6 @@ pub const DynamicTree = extern struct {
         return tree.nodes[proxyId].aabb;
     }
 };
-pub const RayCastInput = native.b2RayCastInput;
-pub const ShapeCastInput = native.b2ShapeCastInput;
 pub const Hull = extern struct {
     points: [8]Vec2,
     count: i32,
@@ -205,13 +227,6 @@ pub const Hull = extern struct {
         return native.b2ValidateHull(@ptrCast(&hull));
     }
 };
-pub const Timer = native.b2Timer;
-pub const Capsule = native.b2Capsule;
-pub const Polygon = native.b2Polygon;
-pub const DebugDraw = native.b2DebugDraw;
-pub const BodyEvents = native.b2BodyEvents;
-pub const SensorEvents = native.b2SensorEvents;
-pub const ContactEvents = native.b2ContactEvents;
 pub const AABB = extern struct {
     lowerBound: Vec2,
     upperBound: Vec2,
@@ -263,17 +278,6 @@ pub const QueryFilter = extern struct {
         return @bitCast(native.b2DefaultQueryFilter());
     }
 };
-pub const ShapeId = native.b2ShapeId;
-pub const TOIInput = native.b2TOIInput;
-pub const TOIOutput = native.b2TOIOutput;
-pub const TOIState = native.b2TOIState;
-pub const Version = native.b2Version;
-pub const TreeNode = native.b2TreeNode;
-
-pub const defaultCategoryBits = native.b2_defaultCategoryBits;
-pub const defaultMaskBits = native.b2_defaultMaskBits;
-
-// Types that have been translated
 
 pub const WorldId = extern struct {
     pub inline fn create(def: WorldDef) WorldId {
@@ -2030,8 +2034,12 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(Timer, native.b2Timer));
     try std.testing.expect(structsAreABICompatible(TOIInput, native.b2TOIInput));
     try std.testing.expect(structsAreABICompatible(TOIOutput, native.b2TOIOutput));
+    try std.testing.expect(structsAreABICompatible(SimplexVertex, native.b2SimplexVertex));
+    try std.testing.expect(structsAreABICompatible(Simplex, native.b2Simplex));
     // TODO: and the function pointers
     // TODO: and the enums
+    // TODO: and a system that checks for added types
+    // TODO: and a system that checks for added functions. note: may be impossible to do here
 }
 
 fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
