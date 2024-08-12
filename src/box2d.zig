@@ -53,7 +53,6 @@ pub const ShapeCastInput = native.b2ShapeCastInput;
 pub const Timer = native.b2Timer;
 pub const Capsule = native.b2Capsule;
 pub const Polygon = native.b2Polygon;
-pub const DebugDraw = native.b2DebugDraw;
 pub const BodyEvents = native.b2BodyEvents;
 pub const SensorEvents = native.b2SensorEvents;
 pub const ContactEvents = native.b2ContactEvents;
@@ -70,6 +69,197 @@ pub const defaultCategoryBits = native.b2_defaultCategoryBits;
 pub const defaultMaskBits = native.b2_defaultMaskBits;
 
 // Types that have been translated (fully or partially)
+
+// TODO: I don't think using an actual enum here is particularily appropriate.
+pub const HexColor = enum(c_int) {
+    pub const aliceBlue = 0xf0f8ff;
+    pub const antiqueWhite = 0xfaebd7;
+    pub const aqua = 0x00ffff;
+    pub const aquamarine = 0x7fffd4;
+    pub const azure = 0xf0ffff;
+    pub const beige = 0xf5f5dc;
+    pub const bisque = 0xffe4c4;
+    pub const black = 0x000000;
+    pub const blanchedAlmond = 0xffebcd;
+    pub const blue = 0x0000ff;
+    pub const blueViolet = 0x8a2be2;
+    pub const brown = 0xa52a2a;
+    pub const burlywood = 0xdeb887;
+    pub const cadetBlue = 0x5f9ea0;
+    pub const chartreuse = 0x7fff00;
+    pub const chocolate = 0xd2691e;
+    pub const coral = 0xff7f50;
+    pub const cornflowerBlue = 0x6495ed;
+    pub const cornsilk = 0xfff8dc;
+    pub const crimson = 0xdc143c;
+    pub const cyan = 0x00ffff;
+    pub const darkBlue = 0x00008b;
+    pub const darkCyan = 0x008b8b;
+    pub const darkGoldenrod = 0xb8860b;
+    pub const darkGray = 0xa9a9a9;
+    pub const darkGreen = 0x006400;
+    pub const darkKhaki = 0xbdb76b;
+    pub const darkMagenta = 0x8b008b;
+    pub const darkOliveGreen = 0x556b2f;
+    pub const darkOrange = 0xff8c00;
+    pub const darkOrchid = 0x9932cc;
+    pub const darkRed = 0x8b0000;
+    pub const darkSalmon = 0xe9967a;
+    pub const darkSeaGreen = 0x8fbc8f;
+    pub const darkSlateBlue = 0x483d8b;
+    pub const darkSlateGray = 0x2f4f4f;
+    pub const darkTurquoise = 0x00ced1;
+    pub const darkViolet = 0x9400d3;
+    pub const deepPink = 0xff1493;
+    pub const deepSkyBlue = 0x00bfff;
+    pub const dimGray = 0x696969;
+    pub const dodgerBlue = 0x1e90ff;
+    pub const firebrick = 0xb22222;
+    pub const floralWhite = 0xfffaf0;
+    pub const forestGreen = 0x228b22;
+    pub const fuchsia = 0xff00ff;
+    pub const gainsboro = 0xdcdcdc;
+    pub const ghostWhite = 0xf8f8ff;
+    pub const gold = 0xffd700;
+    pub const goldenrod = 0xdaa520;
+    pub const gray = 0xbebebe;
+    pub const gray1 = 0x1a1a1a;
+    pub const gray2 = 0x333333;
+    pub const gray3 = 0x4d4d4d;
+    pub const gray4 = 0x666666;
+    pub const gray5 = 0x7f7f7f;
+    pub const gray6 = 0x999999;
+    pub const gray7 = 0xb3b3b3;
+    pub const gray8 = 0xcccccc;
+    pub const gray9 = 0xe5e5e5;
+    pub const green = 0x00ff00;
+    pub const greenYellow = 0xadff2f;
+    pub const honeydew = 0xf0fff0;
+    pub const hotPink = 0xff69b4;
+    pub const indianRed = 0xcd5c5c;
+    pub const indigo = 0x4b0082;
+    pub const ivory = 0xfffff0;
+    pub const khaki = 0xf0e68c;
+    pub const lavender = 0xe6e6fa;
+    pub const lavenderBlush = 0xfff0f5;
+    pub const lawnGreen = 0x7cfc00;
+    pub const lemonChiffon = 0xfffacd;
+    pub const lightBlue = 0xadd8e6;
+    pub const lightCoral = 0xf08080;
+    pub const lightCyan = 0xe0ffff;
+    pub const lightGoldenrod = 0xeedd82;
+    pub const lightGoldenrodYellow = 0xfafad2;
+    pub const lightGray = 0xd3d3d3;
+    pub const lightGreen = 0x90ee90;
+    pub const lightPink = 0xffb6c1;
+    pub const lightSalmon = 0xffa07a;
+    pub const lightSeaGreen = 0x20b2aa;
+    pub const lightSkyBlue = 0x87cefa;
+    pub const lightSlateBlue = 0x8470ff;
+    pub const lightSlateGray = 0x778899;
+    pub const lightSteelBlue = 0xb0c4de;
+    pub const lightYellow = 0xffffe0;
+    pub const lime = 0x00ff00;
+    pub const limeGreen = 0x32cd32;
+    pub const linen = 0xfaf0e6;
+    pub const magenta = 0xff00ff;
+    pub const maroon = 0xb03060;
+    pub const mediumAquamarine = 0x66cdaa;
+    pub const mediumBlue = 0x0000cd;
+    pub const mediumOrchid = 0xba55d3;
+    pub const mediumPurple = 0x9370db;
+    pub const mediumSeaGreen = 0x3cb371;
+    pub const mediumSlateBlue = 0x7b68ee;
+    pub const mediumSpringGreen = 0x00fa9a;
+    pub const mediumTurquoise = 0x48d1cc;
+    pub const mediumVioletRed = 0xc71585;
+    pub const midnightBlue = 0x191970;
+    pub const mintCream = 0xf5fffa;
+    pub const mistyRose = 0xffe4e1;
+    pub const moccasin = 0xffe4b5;
+    pub const navajoWhite = 0xffdead;
+    pub const navy = 0x000080;
+    pub const navyBlue = 0x000080;
+    pub const oldLace = 0xfdf5e6;
+    pub const olive = 0x808000;
+    pub const oliveDrab = 0x6b8e23;
+    pub const orange = 0xffa500;
+    pub const orangeRed = 0xff4500;
+    pub const orchid = 0xda70d6;
+    pub const paleGoldenrod = 0xeee8aa;
+    pub const paleGreen = 0x98fb98;
+    pub const paleTurquoise = 0xafeeee;
+    pub const paleVioletRed = 0xdb7093;
+    pub const papayaWhip = 0xffefd5;
+    pub const peachPuff = 0xffdab9;
+    pub const peru = 0xcd853f;
+    pub const pink = 0xffc0cb;
+    pub const plum = 0xdda0dd;
+    pub const powderBlue = 0xb0e0e6;
+    pub const purple = 0xa020f0;
+    pub const rebeccaPurple = 0x663399;
+    pub const red = 0xff0000;
+    pub const RosyBrown = 0xbc8f8f;
+    pub const RoyalBlue = 0x4169e1;
+    pub const saddleBrown = 0x8b4513;
+    pub const salmon = 0xfa8072;
+    pub const sandyBrown = 0xf4a460;
+    pub const seaGreen = 0x2e8b57;
+    pub const seashell = 0xfff5ee;
+    pub const sienna = 0xa0522d;
+    pub const silver = 0xc0c0c0;
+    pub const skyBlue = 0x87ceeb;
+    pub const slateBlue = 0x6a5acd;
+    pub const slateGray = 0x708090;
+    pub const snow = 0xfffafa;
+    pub const springGreen = 0x00ff7f;
+    pub const steelBlue = 0x4682b4;
+    pub const tan = 0xd2b48c;
+    pub const teal = 0x008080;
+    pub const thistle = 0xd8bfd8;
+    pub const tomato = 0xff6347;
+    pub const turquoise = 0x40e0d0;
+    pub const violet = 0xee82ee;
+    pub const violetRed = 0xd02090;
+    pub const wheat = 0xf5deb3;
+    pub const white = 0xffffff;
+    pub const whiteSmoke = 0xf5f5f5;
+    pub const yellow = 0xffff00;
+    pub const yellowGreen = 0x9acd32;
+    pub const box2DRed = 0xdc3132;
+    pub const box2DBlue = 0x30aebf;
+    pub const box2DGreen = 0x8cc924;
+    pub const box2DYellow = 0xffee8c;
+    // this is only an "enum" so we can have a type that behaves exactly like an int, but has declarations.
+    _
+};
+
+// TODO: create a wrapper around DebugDraw so users of Box2D don't need to worry about the context type or calling convention
+pub const DebugDraw = extern struct {
+    DrawPolygon: *const fn ([*c]const Vec2, c_int, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawSolidPolygon: *const fn (Transform, [*c]const Vec2, c_int, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawCircle: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawSolidCircle: *const fn (Transform, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawCapsule: *const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawSolidCapsule: *const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawSegment: *const fn (Vec2, Vec2, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawTransform: *const fn (Transform, ?*anyopaque) callconv(.C) void,
+    DrawPoint: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    DrawString: *const fn (Vec2, [*c]const u8, ?*anyopaque) callconv(.C) void,
+    drawingBounds: AABB,
+    useDrawingBounds: bool,
+    drawShapes: bool,
+    drawJoints: bool,
+    drawJointExtras: bool,
+    drawAABBs: bool,
+    drawMass: bool,
+    drawContacts: bool,
+    drawGraphColors: bool,
+    drawContactNormals: bool,
+    drawContactImpulses: bool,
+    drawFrictionImpulses: bool,
+    context: ?*anyopaque,
+};
 
 pub const BodyDef = extern struct {
     type: BodyType,
@@ -99,7 +289,7 @@ pub const Filter = extern struct {
     categoryBits: u32,
     maskBits: u32,
     groupIndex: i32,
-    
+
     pub inline fn default() Filter {
         return @bitCast(native.b2DefaultFilter());
     }
@@ -2036,10 +2226,11 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(TOIOutput, native.b2TOIOutput));
     try std.testing.expect(structsAreABICompatible(SimplexVertex, native.b2SimplexVertex));
     try std.testing.expect(structsAreABICompatible(Simplex, native.b2Simplex));
-    // TODO: and the function pointers
-    // TODO: and the enums
-    // TODO: and a system that checks for added types
-    // TODO: and a system that checks for added functions. note: may be impossible to do here
+    // TODO: the function pointers
+    // TODO: the function pointers in DebugDraw
+    // TODO: the enums
+    // TODO: check for added types
+    // TODO: check for added functions. Can be done by scanning recursively for which box2D functions have alternatives, and erroring if there are functions without alternatives
 }
 
 fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
