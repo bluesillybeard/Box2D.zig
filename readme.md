@@ -10,7 +10,7 @@ It's not too hard to @cImport Box2D's headers, but a binding is certainly nice. 
 
 If all you want to do is compile box2d into a static or shared library, simply clone the repository and use `zig build static` or `zig build shared` to make a static or shared library respectively.
 
-Of course, you're probably here to use your project with Zig. I recomend using a git submodule, and doing the following:
+Of course, you're probably here to use your Box2D with Zig. I recomend using a git submodule, and doing the following:
 
 In your `build.zig`
 ```zig
