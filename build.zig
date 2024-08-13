@@ -10,44 +10,140 @@ pub fn build(b: *std.Build) !void {
     });
 
     // test runner
-    const t = b.addTest(.{
-        .root_source_file = b.path("src/box2d.zig"),
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-    });
-    try link("./", &t.root_module, .{
-        .target = target,
-        .optimize = optimize,
-    });
-    const testArtifact = b.addRunArtifact(t);
-    const runTest = b.step("test", "Run tests");
-    runTest.dependOn(&testArtifact.step);
+    {
+        const t = b.addTest(.{
+            .root_source_file = b.path("src/box2d.zig"),
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        });
+        try link("./", &t.root_module, .{
+            .target = target,
+            .optimize = optimize,
+        });
+        const testArtifact = b.addRunArtifact(t);
+        const runTest = b.step("test", "Run tests");
+        runTest.dependOn(&testArtifact.step);
+    }
 
-    const staticLib = b.addStaticLibrary(.{
-        .name = "box2d",
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-    });
-    staticLib.root_module.addImport("box2d", box2dModule);
-    const staticLibArtifact = b.addInstallArtifact(staticLib, .{});
-    const staticLibStep = b.step("static", "Build a static library of box2d");
-    staticLibStep.dependOn(&staticLibArtifact.step);
-
-    const sharedLib = b.addSharedLibrary(.{
-        .name = "box2d",
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-    });
-    sharedLib.root_module.addImport("box2d", box2dModule);
-    const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
-    const sharedLibStep = b.step("shared", "Build a shared library of box2d");
-    sharedLibStep.dependOn(&sharedLibArtifact.step);
     const installHeadersStep = addInstallHeaders(b, "./");
-    staticLibStep.dependOn(installHeadersStep);
-    sharedLibStep.dependOn(installHeadersStep);
+    // build static lib
+    {
+        const staticLib = b.addStaticLibrary(.{
+            .name = "box2d",
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        });
+        staticLib.root_module.addImport("box2d", box2dModule);
+        const staticLibArtifact = b.addInstallArtifact(staticLib, .{});
+        const staticLibStep = b.step("static", "Build a static library of box2d");
+        staticLibStep.dependOn(&staticLibArtifact.step);
+        staticLibStep.dependOn(installHeadersStep);
+    }
+
+    // build shared lib
+    {
+        const sharedLib = b.addSharedLibrary(.{
+            .name = "box2d",
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        });
+        sharedLib.root_module.addImport("box2d", box2dModule);
+        const sharedLibArtifact = b.addInstallArtifact(sharedLib, .{});
+        const sharedLibStep = b.step("shared", "Build a shared library of box2d");
+        sharedLibStep.dependOn(&sharedLibArtifact.step);
+        sharedLibStep.dependOn(installHeadersStep);
+    }
+
+    // build samples app
+    {
+        const samplesExe = b.addExecutable(.{
+            .name = "samples",
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        });
+        samplesExe.linkLibCpp();
+        // Link directly instead of using a module so we get the include dirs.
+        try link("./", &samplesExe.root_module, .{.target = target, .optimize = optimize});
+        // the samples app uses GLAD. Instead of making a library, just add the sources.
+        samplesExe.addCSourceFile(.{.file = b.path("box2c/extern/glad/src/glad.c")});
+        samplesExe.addIncludePath(b.path("box2c/extern/glad/include"));
+        // Note: the cmake for the samples app does a bit more work to find GLFW nicely.
+        // We just do the equivalent of '-l glfw'
+        samplesExe.root_module.linkSystemLibrary("glfw", .{});
+        // Imgui, as well as the backends needed for use GLFW and OpenGL
+        // Zig could use something like cmake's fetch content... For now, we just have Imgui as a git submodule
+        samplesExe.addCSourceFiles(.{
+            .files = &[_][]const u8 {
+                "imgui/imgui.cpp",
+                "imgui/imgui_draw.cpp",
+                "imgui/imgui_demo.cpp",
+                "imgui/imgui_tables.cpp",
+                "imgui/imgui_widgets.cpp",
+                "imgui/backends/imgui_impl_glfw.cpp",
+                "imgui/backends/imgui_impl_opengl3.cpp",
+            },
+            .flags = &[_][]const u8 {
+                "-std=c++17",
+                "-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS",
+            }
+        });
+        samplesExe.addIncludePath(b.path("imgui"));
+        samplesExe.addIncludePath(b.path("imgui/backends"));
+        // jsmn for json
+        samplesExe.addIncludePath(b.path("box2c/extern/jsmn/"));
+        // add the source files for the samples app
+        samplesExe.addCSourceFiles(.{
+            .files = &[_][]const u8{
+                "box2c/samples/car.cpp",
+                "box2c/samples/donut.cpp",
+                "box2c/samples/doohickey.cpp",
+                "box2c/samples/draw.cpp",
+                "box2c/samples/human.cpp",
+                "box2c/samples/main.cpp",
+                "box2c/samples/sample.cpp",
+                "box2c/samples/sample_benchmark.cpp",
+                "box2c/samples/sample_bodies.cpp",
+                "box2c/samples/sample_collision.cpp",
+                "box2c/samples/sample_continuous.cpp",
+                "box2c/samples/sample_events.cpp",
+                "box2c/samples/sample_geometry.cpp",
+                "box2c/samples/sample_joints.cpp",
+                "box2c/samples/sample_robustness.cpp",
+                "box2c/samples/sample_shapes.cpp",
+                "box2c/samples/sample_stacking.cpp",
+                "box2c/samples/sample_world.cpp",
+                "box2c/samples/settings.cpp",
+                "box2c/samples/shader.cpp",
+            },
+            .flags = &[_][]const u8 {
+                "-std=c++17",
+            }
+        });
+        samplesExe.addIncludePath(b.path("box2c/samples"));
+        // We also need enkiTS
+        // Like with Imgui, it's a submodule...
+        samplesExe.addCSourceFile(.{
+            .file = b.path("enkiTS/src//TaskScheduler.cpp"),
+            .flags = &[_][]const u8{}
+        });
+        samplesExe.addIncludePath(b.path("enkiTS/src"));
+        // step to copy the resources for the samples app
+        const copyFilesStep = b.addInstallDirectory(.{
+            .source_dir = b.path("box2c/samples/data"),
+            // TODO: probably incorrect
+            .install_dir = .{ .bin = void{} },
+            .install_subdir = "data",
+        });
+
+        const samplesExeArtifact = b.addInstallArtifact(samplesExe, .{});
+        const samplesExeStep = b.step("samples", "Build the samples app");
+        samplesExeStep.dependOn(&copyFilesStep.step);
+        samplesExeStep.dependOn(&samplesExeArtifact.step);
+    }
 }
 
 fn addInstallHeaders(b: *std.Build, comptime modulePath: []const u8) *std.Build.Step {

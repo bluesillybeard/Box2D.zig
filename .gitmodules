@@ -1,3 +1,9 @@
 [submodule "box2c"]
 	path = box2c
 	url = https://github.com/erincatto/box2c.git
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "enkiTS"]
+	path = enkiTS
+	url = https://github.com/dougbinks/enkiTS.git
