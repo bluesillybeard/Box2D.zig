@@ -20,10 +20,6 @@ pub const FreeFn = fn (mem: *anyopaque) callconv(.C) void;
 pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
 pub const TaskCallback = fn (i32, i32, u32, ?*anyopaque) callconv(.C) void;
 
-pub const Circle = native.b2Circle;
-pub const RayResult = native.b2RayResult;
-pub const Manifold = native.b2Manifold;
-pub const Profile = native.b2Profile;
 pub const Counters = native.b2Counters;
 pub const MassData = native.b2MassData;
 pub const JointId = native.b2JointId;
@@ -55,20 +51,161 @@ pub const Capsule = native.b2Capsule;
 pub const Polygon = native.b2Polygon;
 pub const BodyEvents = native.b2BodyEvents;
 pub const SensorEvents = native.b2SensorEvents;
-pub const ContactEvents = native.b2ContactEvents;
-pub const ShapeId = native.b2ShapeId;
-pub const TOIInput = native.b2TOIInput;
-pub const TOIOutput = native.b2TOIOutput;
-pub const TOIState = native.b2TOIState;
-pub const Version = native.b2Version;
-pub const TreeNode = native.b2TreeNode;
-pub const SimplexVertex = native.b2SimplexVertex;
-pub const Simplex = native.b2Simplex;
 
 pub const defaultCategoryBits = native.b2_defaultCategoryBits;
 pub const defaultMaskBits = native.b2_defaultMaskBits;
 
 // Types that have been translated (fully or partially)
+
+pub const ContactBeginTouchEvent = extern struct {
+    shapeIdA: ShapeId,
+    shapeIdB: ShapeId,
+};
+
+pub const ContactEndTouchEvent = extern struct {
+    shapeIdA: ShapeId,
+    shapeIdB: ShapeId,
+};
+
+pub const ContactHitEvent = extern struct {
+    shapeIdA: ShapeId,
+    shapeIdB: ShapeId,
+    point: Vec2,
+    normal: Vec2,
+    approachSpeed: f32,
+};
+
+pub const ContactEvents = extern struct {
+    beginEvents: [*]ContactBeginTouchEvent,
+    endEvents: [*]ContactEndTouchEvent,
+    hitEvents: [*]ContactHitEvent,
+};
+
+pub const ShapeId = extern struct {
+    index1: i32,
+    world0: u16,
+    revision: u16,
+};
+
+pub const TOIInput = extern struct {
+    proxyA: DistanceProxy,
+    proxyB: DistanceProxy,
+    sweepA: Sweep,
+    sweepB: Sweep,
+    tMax: f32,
+};
+
+pub const TOIOutput = extern struct {
+    state: TOIState,
+    t: f32,
+};
+
+pub const TOIState = enum(c_int) {
+    unknown,
+    failed,
+    overlapped,
+    hit,
+    separated,
+};
+
+pub const Version = extern struct {
+    major: c_int,
+    mionor: c_int,
+    revision: c_int,
+};
+
+pub const TreeNode = extern struct {
+
+    pub const Union0 = extern union {
+        parent: i32,
+        next: i32,
+    };
+
+    aabb: AABB,
+    categoryBits: u32,
+    union0: Union0,
+    child1: i32,
+    child2: i32,
+    userData: i32,
+    height: i16,
+    enlarged: bool,
+    pad: [9]u8,
+};
+
+pub const SimplexVertex = extern struct {
+    wA: Vec2,
+    wB: Vec2,
+    w: Vec2,
+    a: f32,
+    indexA: i32,
+    indexB: i32,
+};
+
+pub const Simplex = extern struct {
+    v1: SimplexVertex,
+    v2: SimplexVertex,
+    v3: SimplexVertex,
+    coint: i32,
+};
+
+/// Profiling data. Times are in milliseconds.
+pub const Profile = extern struct {
+    step: f32,
+    pairs: f32,
+    collide: f32,
+    solve: f32,
+    buildIslands: f32,
+    solveConstraints: f32,
+    prepareTasks: f32,
+    solverTasks: f32,
+    prepareConstraints: f32,
+    integrateVelocities: f32,
+    warmStart: f32,
+    solveVelocities: f32,
+    integratePositions: f32,
+    relaxVelocities: f32,
+    applyRestitution: f32,
+    storeImpulses: f32,
+    finalizeBodies: f32,
+    splitIslands: f32,
+    sleepIslands: f32,
+    hitEvents: f32,
+    broadphase: f32,
+    continuous: f32,
+};
+
+pub const ManifoldPoint = extern struct {
+    point: Vec2,
+    anchorA: Vec2,
+    anchorB: Vec2,
+    separation: f32,
+    normalImpulse: f32,
+    tangentImpulse: f32,
+    maxNormalImpulse: f32,
+    normalVelocitu: f32,
+    id: u16,
+    persisted: bool,
+};
+
+pub const Manifold = extern struct {
+    points: [2]ManifoldPoint,
+    normal: Vec2,
+    pointCount: i32,
+};
+
+pub const RayResult = extern struct {
+    shapeId: ShapeId,
+    point: Vec2,
+    normal: Vec2,
+    fraction: f32,
+    hit: bool,
+};
+
+
+pub const Circle = extern struct {
+    center: Vec2,
+    radius: f32,
+};
 
 // TODO: I don't think using an actual enum here is particularily appropriate.
 pub const HexColor = enum(c_int) {
@@ -2226,6 +2363,11 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(TOIOutput, native.b2TOIOutput));
     try std.testing.expect(structsAreABICompatible(SimplexVertex, native.b2SimplexVertex));
     try std.testing.expect(structsAreABICompatible(Simplex, native.b2Simplex));
+    try std.testing.expect(structsAreABICompatible(ContactBeginTouchEvent, native.b2ContactBeginTouchEvent));
+    try std.testing.expect(structsAreABICompatible(ContactEndTouchEvent, native.b2ContactEndTouchEvent));
+    try std.testing.expect(structsAreABICompatible(ContactHitEvent, native.b2ContactHitEvent));
+    try std.testing.expect(structsAreABICompatible(TreeNode, native.b2TreeNode));
+    try std.testing.expect(structsAreABICompatible(ManifoldPoint, native.b2ManifoldPoint));
     // TODO: the function pointers
     // TODO: the function pointers in DebugDraw
     // TODO: the enums

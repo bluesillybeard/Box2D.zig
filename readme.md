@@ -33,6 +33,8 @@ The binding is under heavy work, so it's quite unstable at the moment. For now, 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
     - My only worry is with simd
+- add option for b2_maxWorlds
+    - This isn't even in Box2D's build system as far as I can tell, need to edit the source code for that?
 - Work on the actual binding
     - Move structs out of native and convert functions like `worldIsValid` to use the Zig "OOP-like" syntax: `world.isValid` (Stage 3)
     - add generics and stuff where reasonable (Stage 4)
