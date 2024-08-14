@@ -155,6 +155,7 @@ pub const MouseJointDef = extern struct {
     maxForce: f32,
     collideConnected: bool,
     userData: ?*anyopaque,
+    internalValue: i32,
 };
 
 pub const PrismaticJointDef = extern struct {
@@ -175,6 +176,7 @@ pub const PrismaticJointDef = extern struct {
     motorSpeed: f32,
     collideConnected: bool,
     userData: ?*anyopaque,
+    internalValue: i32,
 };
 
 pub const RevoluteJointDef = extern struct {
@@ -387,6 +389,9 @@ pub const ContactEvents = extern struct {
     beginEvents: [*]ContactBeginTouchEvent,
     endEvents: [*]ContactEndTouchEvent,
     hitEvents: [*]ContactHitEvent,
+    beginCount: i32,
+    endCount: i32,
+    hitCount: i32,
 };
 
 pub const ShapeId = extern struct {
