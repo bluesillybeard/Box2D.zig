@@ -48,6 +48,9 @@ I suggest using the native option `@import("box2d").native` for now, however the
 - translate the entire samples app
     - Quite a bit of an undertaking, but I think it wouldn't be too hard.
 - there are a lot of TODOs regaurding automatic validation of the binding
+- package this into various places
+    - build.zig.zon
+    - 
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:
