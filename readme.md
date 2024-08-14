@@ -28,21 +28,26 @@ This also probably works using Zigs package `build.zig.zon` thing, however I hav
 
 ## Other notes
 
-The binding is under heavy work, so it's quite unstable at the moment. For now, I recomend using the native option (`@import("box2d").native`) until the binding is in a stable state. I am a busy person, so it may take a while.
+The binding is under heavy work, but it's nearly there. All that's missing are:
+- move collision functions into shape structs
+- add enforced type safety for userData and context pointers
+    - userData type validation will be done at runtime, since it's just an opaque pointer that gets eaten and regurgitated
+- copy documentation over (with minor modifications to fit the binding better)
+- there are a number of TODOs
+
+I suggest using the native option `@import("box2d").native` for now, however the binding is close enough to ready that it's in a mostly usable state if you are willing to do bits of refactoring as it matures.
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
     - My only worry is with simd
 - add option for b2_maxWorlds
     - This isn't even in Box2D's build system as far as I can tell, need to edit the source code for that?
-- Work on the actual binding
-    - Move structs out of native and convert functions like `worldIsValid` to use the Zig "OOP-like" syntax: `world.isValid` (Stage 3)
-    - add generics and stuff where reasonable (Stage 4)
-        - Since box2d can't do comptime verification stuff directly, and adding comptime type checking would be annoying and limiting, maybe wrap the context types in a special box that checks to make sure it matches at runtime.
-    - Copy and tweak inline documentation from Box2D
+- Work on the actual binding (see [Other notes](#other-notes))
 - Once the actual binding is in a good state, get this added to the Box2D bindings list.
+- port all of the unit tests over (except the ones that test internal Box2D functions)
 - translate the entire samples app
     - Quite a bit of an undertaking, but I think it wouldn't be too hard.
+- there are a lot of TODOs regaurding automatic validation of the binding
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:
