@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 /// This allows users to get the "native" version of Box2D, which is just an @cImport of Box2Ds headers.
 pub const native = @import("box2dnative.zig");
 
@@ -20,42 +21,349 @@ pub const FreeFn = fn (mem: *anyopaque) callconv(.C) void;
 pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
 pub const TaskCallback = fn (i32, i32, u32, ?*anyopaque) callconv(.C) void;
 
-pub const Counters = native.b2Counters;
-pub const MassData = native.b2MassData;
-pub const JointId = native.b2JointId;
-pub const ContactData = native.b2ContactData;
-pub const ShapeDef = native.b2ShapeDef;
-pub const Segment = native.b2Segment;
-pub const CastOutput = native.b2CastOutput;
-pub const SmoothSegment = native.b2SmoothSegment;
-pub const ChainId = native.b2ChainId;
-pub const ChainDef = native.b2ChainDef;
-pub const DistanceJointDef = native.b2DistanceJointDef;
-pub const MotorJointDef = native.b2MotorJointDef;
-pub const MouseJointDef = native.b2MouseJointDef;
-pub const PrismaticJointDef = native.b2PrismaticJointDef;
-pub const RevoluteJointDef = native.b2RevoluteJointDef;
-pub const WeldJointDef = native.b2WeldJointDef;
-pub const WheelJointDef = native.b2WheelJointDef;
-pub const SegmentDistanceResult = native.b2SegmentDistanceResult;
-pub const DistanceCache = native.b2DistanceCache;
-pub const DistanceInput = native.b2DistanceInput;
-pub const DistanceOutput = native.b2DistanceOutput;
-pub const ShapeCastPairInput = native.b2ShapeCastPairInput;
-pub const DistanceProxy = native.b2DistanceProxy;
-pub const Sweep = native.b2Sweep;
-pub const RayCastInput = native.b2RayCastInput;
-pub const ShapeCastInput = native.b2ShapeCastInput;
-pub const Timer = native.b2Timer;
-pub const Capsule = native.b2Capsule;
-pub const Polygon = native.b2Polygon;
-pub const BodyEvents = native.b2BodyEvents;
-pub const SensorEvents = native.b2SensorEvents;
-
 pub const defaultCategoryBits = native.b2_defaultCategoryBits;
 pub const defaultMaskBits = native.b2_defaultMaskBits;
+pub const maxPolygonVertices = native.b2_maxPolygonVertices;
 
-// Types that have been translated (fully or partially)
+// these have been translated
+
+pub const Counters = extern struct {
+    staticBodyCount: i32,
+	bodyCount: i32,
+	shapeCount: i32,
+	contactCount: i32,
+	jointCount: i32,
+	islandCount: i32,
+	stackUsed: i32,
+	staticTreeHeight: i32,
+	treeHeight: i32,
+	byteCount: i32,
+	taskCount: i32,
+	colorCounts: [12]i32,
+};
+
+pub const MassData = extern struct {
+    mass: f32,
+    center: Vec2,
+    rotationalInertia: f32
+};
+
+pub const JointId = extern struct {
+    index1: i32,
+    world0: u16,
+    revision: u16,
+};
+
+pub const ContactData = extern struct {
+    shapeIdA: ShapeId,
+    shapeIdB: ShapeId,
+    manifold: Manifold,
+};
+
+pub const ShapeDef = extern struct {
+    userData: ?*anyopaque,
+    friction: f32,
+    restitution: f32,
+    density: f32,
+    filter: Filter,
+    customColor: u32,
+    isSensor: bool,
+    enableSensorEvents: bool,
+    enableContactEvents: bool,
+    enableHitEvents: bool,
+    enablePreSolveEvents: bool,
+    forceContactCreation: bool,
+    internalValue: i32,
+};
+
+pub const Segment = extern struct {
+    point1: Vec2,
+    point2: Vec2,
+};
+
+pub const CastOutput = extern struct {
+    normal: Vec2,
+    point: Vec2,
+    fraction: f32,
+    iterations: i32,
+    hit: bool,
+};
+
+pub const SmoothSegment = extern struct {
+    ghost1: Vec2,
+    segment: Segment,
+    ghost2: Vec2,
+    chainId: i32,
+};
+
+pub const ChainId = extern struct {
+    index: i32,
+    world0: u16,
+    revision: u16,
+};
+
+pub const ChainDef = extern struct {
+    userData: ?*anyopaque,
+    points: [*]const Vec2,
+    count: i32,
+    friction: f32,
+    restitution: f32,
+    filter: Filter,
+    isLoop: bool,
+    internalValue: i32,
+};
+
+pub const DistanceJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    localAnchorA: Vec2,
+    localAnchorB: Vec2,
+    length: f32,
+    enableSpring: bool,
+    hertz: f32,
+    dampingRatio: f32,
+    enableLimit: bool,
+    minLength: f32,
+    maxLength: f32,
+    enableMotor: bool,
+    maxMotorForce: f32,
+    motorSpeed: f32,
+    collideConnected: bool,
+    userData: ?*anyopaque,
+    internalValue: i32,
+};
+
+pub const MotorJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    linearOffset: Vec2,
+    angularOffset: f32,
+    maxForce: f32,
+    maxTorque: f32,
+    correctionFactor: f32,
+    collideConnected: bool,
+    userData: ?*anyopaque,
+    internalValue: i32,
+};
+
+pub const MouseJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    target: Vec2,
+    hertz: f32,
+    dampingRatio: f32,
+    maxForce: f32,
+    collideConnected: bool,
+    userData: ?*anyopaque,
+};
+
+pub const PrismaticJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    localAnchorA: Vec2,
+    localAnchorB: Vec2,
+    localAxisA: Vec2,
+    referenceAngle: f32,
+    enableSpring: bool,
+    hertz: f32,
+    dampingRatio: f32,
+    enableLimit: bool,
+    lowerTranslation: f32,
+    upperTranslation: f32,
+    enableMotor: bool,
+    maxMotorForce: f32,
+    motorSpeed: f32,
+    collideConnected: bool,
+    userData: ?*anyopaque,
+};
+
+pub const RevoluteJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    localAnchorA: Vec2,
+    localAnchorB: Vec2,
+    referenceAngle: f32,
+    enableSpring: bool,
+    hertz: f32,
+    dampingRatio: f32,
+    enableLimit: bool,
+    lowerAngle: f32,
+    upperAngle: f32,
+    enableMotor: bool,
+    maxMotorTorque: f32,
+    motorSpeed: f32,
+    drawSize: f32,
+    collideConnected: bool,
+    userData: ?*anyopaque,
+    internalValue: i32,
+};
+
+pub const WeldJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    localAnchorA: Vec2,
+    localAnchorB: Vec2,
+    referenceAngle: f32,
+    linearHertz: f32,
+    angularHertz: f32,
+    linearDampingRatio: f32,
+    angularDampingRatio: f32,
+    collideConnected: bool,
+    userData: ?*anyopaque,
+    internalValue: i32,
+};
+
+pub const WheelJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    localAnchorA: Vec2,
+    localAnchorB: Vec2,
+    localAxisA: Vec2,
+    enableSpring: bool,
+    hertz: f32,
+    dampingRatio: f32,
+    enableLimit: bool,
+    lowerTranslation: f32,
+    upperTranslation: f32,
+    enableMotor: bool,
+    maxMotorTorque: f32,
+    motorSpeed: f32,
+    collideConnecte: bool,
+    userData: ?*anyopaque,
+    internalValue: i32,
+};
+
+pub const SegmentDistanceResult = extern struct {
+    closest1: Vec2,
+    closest2: Vec2,
+    fraction1: f32,
+    fraction2: f32,
+    distanceSquared: f32,
+};
+
+pub const DistanceCache = extern struct {
+    count: u16,
+    indexA: [3]u8,
+    indexB: [3]u8,
+};
+
+pub const DistanceInput = extern struct {
+    proxyA: DistanceProxy,
+    proxyB: DistanceProxy,
+    transformA: Transform,
+    transformB: Transform,
+    useRadii: bool,
+};
+
+pub const DistanceOutput = extern struct {
+    pointA: Vec2,
+    pointB: Vec2,
+    distance: f32,
+    iterations: i32,
+    simplexCount: i32,
+};
+
+pub const ShapeCastPairInput = extern struct {
+    proxyA: DistanceProxy,
+    proxyB: DistanceProxy,
+    transformA: Transform,
+    transformB: Transform,
+    translationB: Vec2,
+    maxFraction: f32,
+};
+
+pub const DistanceProxy = extern struct {
+    points: [maxPolygonVertices]Vec2,
+    count: i32,
+    radius: f32,
+};
+
+pub const Sweep = extern struct {
+    localCenter: Vec2,
+    c1: Vec2,
+    c2: Vec2,
+    q1: Rot,
+    q2: Rot,
+};
+
+pub const RayCastInput = extern struct {
+    origin: Vec2,
+    translation: Vec2,
+    maxFraction: f32,
+};
+
+pub const ShapeCastInput = extern struct {
+    points: [maxPolygonVertices]Vec2,
+    count: i32,
+    radius: f32,
+    translation: Vec2,
+    maxFraction: f32
+};
+
+pub const Timer = blk: {
+    switch(builtin.os.tag) {
+        .windows => {
+            break :blk extern struct {
+                start: i64,
+            };
+        },
+        .linux, .macos, .tvos, .watchos, .ios, .visionos => {
+            break :blk extern struct {
+                start_sec: c_ulonglong,
+                start_usec: c_ulonglong,
+            };
+        },
+        else => {
+            break :blk extern struct {
+                dummy: i32,
+            };
+        }
+    }
+};
+
+
+pub const Capsule = extern struct {
+    center1: Vec2,
+    center2: Vec2,
+    radius: f32,
+};
+
+pub const Polygon = extern struct {
+    vertices: [maxPolygonVertices]Vec2,
+    normals: [maxPolygonVertices]Vec2,
+    centroid: Vec2,
+    radius: f32,
+    count: i32,
+};
+
+pub const BodyMoveEvent = extern struct {
+    transform: Transform,
+    bodyId: BodyId,
+    userData: ?*anyopaque,
+    fellAsleep: bool,
+};
+
+pub const BodyEvents = extern struct {
+    moveEvents: [*]BodyMoveEvent,
+    moveCount: i32,
+};
+
+pub const SensorEndTouchEvent = extern struct {
+    sensorShapeId: ShapeId,
+    visitorShapeId: ShapeId,
+};
+
+pub const SensorBeginTouchEvent = extern struct {
+    sensorShapeId: ShapeId,
+    visitorShapeId: ShapeId,
+};
+
+pub const SensorEvents = extern struct {
+    beginEvents: [*]SensorBeginTouchEvent,
+    endEvents: [*]SensorEndTouchEvent,
+    beginCount: i32,
+    endCount: i32,
+};
 
 pub const ContactBeginTouchEvent = extern struct {
     shapeIdA: ShapeId,
@@ -2368,6 +2676,9 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(ContactHitEvent, native.b2ContactHitEvent));
     try std.testing.expect(structsAreABICompatible(TreeNode, native.b2TreeNode));
     try std.testing.expect(structsAreABICompatible(ManifoldPoint, native.b2ManifoldPoint));
+    try std.testing.expect(structsAreABICompatible(SensorEndTouchEvent, native.b2SensorEndTouchEvent));
+    try std.testing.expect(structsAreABICompatible(SensorBeginTouchEvent, native.b2SensorBeginTouchEvent));
+    try std.testing.expect(structsAreABICompatible(BodyMoveEvent, native.b2BodyMoveEvent));
     // TODO: the function pointers
     // TODO: the function pointers in DebugDraw
     // TODO: the enums
