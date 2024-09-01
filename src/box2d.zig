@@ -2626,14 +2626,31 @@ pub inline fn collideChainSegmentAndPolygon(chainSegmentA: ChainSegment, xfA: Tr
 // This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
 fn recursivelyRefAllDeclsExceptNative(T: type) void {
     @setEvalBranchQuota(10000);
-    if (@typeInfo(T) == .Struct) {
-        inline for (comptime std.meta.declarations(T)) |decl| {
-            // when in doubt, just put 'comptime' in front of literally everything.
-            // Because the Zig compiler will annoyingly delay anything it can to runtime, for some reason.
-            if (comptime !std.mem.eql(u8, decl.name, "native")) {
-                const d = @field(T, decl.name);
-                _ = &d;
-                if (@TypeOf(d) == type) recursivelyRefAllDeclsExceptNative(d);
+    // Isn't this the third or fourth time zig devs decided to change the capitalization of enum values?
+    // TODO: probably fine to remove once 0.14 is stable
+    const useOldEnumCapitalization = comptime @hasField(std.builtin.Type, "Struct");
+    if(useOldEnumCapitalization) {
+        if (@typeInfo(T) == .Struct) {
+            inline for (comptime std.meta.declarations(T)) |decl| {
+                // when in doubt, just put 'comptime' in front of literally everything.
+                // Because the Zig compiler will annoyingly delay anything it can to runtime, for some reason.
+                if (comptime !std.mem.eql(u8, decl.name, "native")) {
+                    const d = @field(T, decl.name);
+                    _ = &d;
+                    if (@TypeOf(d) == type) recursivelyRefAllDeclsExceptNative(d);
+                }
+            }
+        }
+    } else {
+        if (@typeInfo(T) == .@"struct") {
+            inline for (comptime std.meta.declarations(T)) |decl| {
+                // when in doubt, just put 'comptime' in front of literally everything.
+                // Because the Zig compiler will annoyingly delay anything it can to runtime, for some reason.
+                if (comptime !std.mem.eql(u8, decl.name, "native")) {
+                    const d = @field(T, decl.name);
+                    _ = &d;
+                    if (@TypeOf(d) == type) recursivelyRefAllDeclsExceptNative(d);
+                }
             }
         }
     }
@@ -2751,19 +2768,39 @@ fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
     const aInfo = @typeInfo(A);
     const bInfo = @typeInfo(B);
     // Lol who cares about things that aren't structs
-    if (aInfo != .Struct) return false;
-    if (bInfo != .Struct) return false;
-    // Make sure they have the same layout and that layout is ABI stable
-    if (aInfo.Struct.layout == .auto) return false;
-    if (aInfo.Struct.layout != bInfo.Struct.layout) return false;
+    // Also, isn't this the third or fourth time zig devs decided to change the capitalization of enum values?
+    // TODO: probably fine to remove once Zig 0.14 is stable
+    const useOldEnumCapitalization = comptime @hasField(std.builtin.Type, "Struct");
+    if(useOldEnumCapitalization) {
+        if (aInfo != .Struct) return false;
+        if (bInfo != .Struct) return false;
+        // Make sure they have the same layout and that layout is ABI stable
+        if (aInfo.Struct.layout == .auto) return false;
+        if (aInfo.Struct.layout != bInfo.Struct.layout) return false;
 
-    if (aInfo.Struct.fields.len != bInfo.Struct.fields.len) return false;
-    inline for (aInfo.Struct.fields, 0..) |aField, i| {
-        // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
-        const bField = bInfo.Struct.fields[i];
-        // this *could* do a recursive ABI check on the fields.
-        // However, that would be a lot of work, so just check that the sizes match and call it a day
-        if (@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
+        if (aInfo.Struct.fields.len != bInfo.Struct.fields.len) return false;
+        inline for (aInfo.Struct.fields, 0..) |aField, i| {
+            // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
+            const bField = bInfo.Struct.fields[i];
+            // this *could* do a recursive ABI check on the fields.
+            // However, that would be a lot of work, so just check that the sizes match and call it a day
+            if (@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
+        }
+    } else {
+        if (aInfo != .@"struct") return false;
+        if (bInfo != .@"struct") return false;
+        // Make sure they have the same layout and that layout is ABI stable
+        if (aInfo.@"struct".layout == .auto) return false;
+        if (aInfo.@"struct".layout != bInfo.@"struct".layout) return false;
+
+        if (aInfo.@"struct".fields.len != bInfo.@"struct".fields.len) return false;
+        inline for (aInfo.@"struct".fields, 0..) |aField, i| {
+            // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
+            const bField = bInfo.@"struct".fields[i];
+            // this *could* do a recursive ABI check on the fields.
+            // However, that would be a lot of work, so just check that the sizes match and call it a day
+            if (@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
+        }
     }
     // None of the checks failed, so assume they are compatible at this point
     return true;
