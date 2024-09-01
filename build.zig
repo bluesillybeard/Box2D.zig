@@ -17,9 +17,26 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
             .link_libc = true,
         });
+        const cflags: []const []const u8 = blk: {
+            switch (target.result.os.tag) {
+                .macos, .ios, .tvos, .visionos, .watchos => {
+                    // determinism options
+                    // TODO: does this actually work? I have no apple hardware to test on
+                    // note: requires translating the determinism tests over (or adding the C files directly from box2D)
+                    break :blk &[_][]const u8 {
+                        "-ffp-contract=off"
+                    };
+                },
+                else => {
+                    break :blk &[_][]const u8{};
+                }
+            }
+            
+        };
         try link("./", &t.root_module, .{
             .target = target,
             .optimize = optimize,
+            .cflags = cflags,
         });
         const testArtifact = b.addRunArtifact(t);
         const runTest = b.step("test", "Run tests");
@@ -67,10 +84,29 @@ pub fn build(b: *std.Build) !void {
         });
         samplesExe.linkLibCpp();
         // Link directly instead of using a module so we get the include dirs.
-        try link("./", &samplesExe.root_module, .{.target = target, .optimize = optimize});
+        const additionalCFlags: []const []const u8 = blk: {
+            switch (target.result.os.tag) {
+                .macos, .ios, .tvos, .visionos, .watchos => {
+                    // determinism options
+                    // TODO: does this actually work? I have no apple hardware to test on
+                    // note: requires translating the determinism tests over (or adding the C files directly from box2D)
+                    break :blk &[_][]const u8 {
+                        "-ffp-contract=off"
+                    };
+                },
+                else => {
+                    break :blk &[_][]const u8{};
+                }
+            }
+        };
+        try link("./", &samplesExe.root_module, .{
+            .target = target,
+            .optimize = optimize,
+            .cflags = additionalCFlags
+        });
         // the samples app uses GLAD. Instead of making a library, just add the sources.
-        samplesExe.addCSourceFile(.{.file = b.path("box2c/extern/glad/src/glad.c")});
-        samplesExe.addIncludePath(b.path("box2c/extern/glad/include"));
+        samplesExe.addCSourceFile(.{.file = b.path("box2d/extern/glad/src/glad.c")});
+        samplesExe.addIncludePath(b.path("box2d/extern/glad/include"));
         // Note: the cmake for the samples app does a bit more work to find GLFW nicely.
         // We just do the equivalent of '-l glfw'
         samplesExe.root_module.linkSystemLibrary("glfw", .{});
@@ -94,36 +130,39 @@ pub fn build(b: *std.Build) !void {
         samplesExe.addIncludePath(b.path("imgui"));
         samplesExe.addIncludePath(b.path("imgui/backends"));
         // jsmn for json
-        samplesExe.addIncludePath(b.path("box2c/extern/jsmn/"));
+        samplesExe.addIncludePath(b.path("box2d/extern/jsmn/"));
         // add the source files for the samples app
         samplesExe.addCSourceFiles(.{
             .files = &[_][]const u8{
-                "box2c/samples/car.cpp",
-                "box2c/samples/donut.cpp",
-                "box2c/samples/doohickey.cpp",
-                "box2c/samples/draw.cpp",
-                "box2c/samples/human.cpp",
-                "box2c/samples/main.cpp",
-                "box2c/samples/sample.cpp",
-                "box2c/samples/sample_benchmark.cpp",
-                "box2c/samples/sample_bodies.cpp",
-                "box2c/samples/sample_collision.cpp",
-                "box2c/samples/sample_continuous.cpp",
-                "box2c/samples/sample_events.cpp",
-                "box2c/samples/sample_geometry.cpp",
-                "box2c/samples/sample_joints.cpp",
-                "box2c/samples/sample_robustness.cpp",
-                "box2c/samples/sample_shapes.cpp",
-                "box2c/samples/sample_stacking.cpp",
-                "box2c/samples/sample_world.cpp",
-                "box2c/samples/settings.cpp",
-                "box2c/samples/shader.cpp",
+                "box2d/samples/car.cpp",
+                "box2d/samples/donut.cpp",
+                "box2d/samples/doohickey.cpp",
+                "box2d/samples/draw.cpp",
+                "box2d/samples/human.cpp",
+                "box2d/samples/main.cpp",
+                "box2d/samples/sample.cpp",
+                "box2d/samples/sample_benchmark.cpp",
+                "box2d/samples/sample_bodies.cpp",
+                "box2d/samples/sample_collision.cpp",
+                "box2d/samples/sample_continuous.cpp",
+                "box2d/samples/sample_events.cpp",
+                "box2d/samples/sample_geometry.cpp",
+                "box2d/samples/sample_joints.cpp",
+                "box2d/samples/sample_robustness.cpp",
+                "box2d/samples/sample_shapes.cpp",
+                "box2d/samples/sample_stacking.cpp",
+                "box2d/samples/sample_world.cpp",
+                "box2d/samples/sample_determinism.cpp",
+                "box2d/samples/settings.cpp",
+                "box2d/samples/shader.cpp",
             },
             .flags = &[_][]const u8 {
                 "-std=c++17",
-            }
+            }, //TODO: does this need the additional C flags from earlier?
         });
-        samplesExe.addIncludePath(b.path("box2c/samples"));
+        // enable determinism
+
+        samplesExe.addIncludePath(b.path("box2d/samples"));
         // We also need enkiTS
         // Like with Imgui, it's a submodule...
         samplesExe.addCSourceFile(.{
@@ -133,7 +172,7 @@ pub fn build(b: *std.Build) !void {
         samplesExe.addIncludePath(b.path("enkiTS/src"));
         // step to copy the resources for the samples app
         const copyFilesStep = b.addInstallDirectory(.{
-            .source_dir = b.path("box2c/samples/data"),
+            .source_dir = b.path("box2d/samples/data"),
             // TODO: probably incorrect
             .install_dir = .{ .bin = void{} },
             .install_subdir = "data",
@@ -150,7 +189,7 @@ fn addInstallHeaders(b: *std.Build, comptime modulePath: []const u8) *std.Build.
     const step = b.step("headers", "Copy headers to output directory. Automatically done when building static or shared library.");
     step.dependOn(&b.addInstallDirectory(.{
         .install_dir = .header,
-        .source_dir = b.path(modulePath ++ "/box2c/include/"),
+        .source_dir = b.path(modulePath ++ "/box2d/include/"),
         .install_subdir = "",
     }).step);
     return step;
@@ -159,6 +198,7 @@ fn addInstallHeaders(b: *std.Build, comptime modulePath: []const u8) *std.Build.
 pub const Box2dOptions = struct {
     target: ?std.Build.ResolvedTarget = null,
     optimize: ?std.builtin.OptimizeMode = null,
+    cflags: ?[]const []const u8 = null,
 };
 
 /// Adds the box2d module and returns it.
@@ -173,20 +213,19 @@ pub fn addModule(b: *std.Build, comptime modulePath: []const u8, options: Box2dO
 }
 
 fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOptions) !void {
-    _ = options;
     var args = try std.ArrayList([]const u8).initCapacity(c.owner.allocator, 8);
     try args.append("-I");
-    try args.append(modulePath ++ "/box2c/include");
+    try args.append(modulePath ++ "/box2d/include");
     try args.append("-std=gnu17");
-    // Thankfully, simde is entirely header files which makes this pretty easy
-    try args.append("-I");
-    try args.append(modulePath ++ "/box2c/extern/simde");
+    if(options.cflags) |cflags| {
+        try args.appendSlice(cflags);
+    }
 
     // "Where did all the AVX2 stuff go?"
     // A: I believe that stuff is already handled by Zig's build system automatically. I may be wrong about that though.
 
     c.addCSourceFiles(.{
-        .root = c.owner.path(modulePath ++ "/box2c/src/"),
+        .root = c.owner.path(modulePath ++ "/box2d/src/"),
         .files = &[_][]const u8{
             "aabb.c",
             "allocate.c",
@@ -226,6 +265,6 @@ fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOpt
         },
         .flags = try args.toOwnedSlice(),
     });
-    c.addIncludePath(c.owner.path(modulePath ++ "/box2c/include/"));
+    c.addIncludePath(c.owner.path(modulePath ++ "/box2d/include/"));
     c.link_libc = true;
 }

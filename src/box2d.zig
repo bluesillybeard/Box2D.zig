@@ -60,7 +60,7 @@ pub const Segment = extern struct {
     }
 };
 
-pub const SmoothSegment = extern struct {
+pub const ChainSegment = extern struct {
     ghost1: Vec2,
     segment: Segment,
     ghost2: Vec2,
@@ -103,16 +103,12 @@ pub const Version = extern struct {
 pub const Rot = extern struct {
 
     pub inline fn fromRadians(angle: f32) Rot {
-        const q: Rot = Rot{
-            .c = @cos(angle),
-            .s = @sin(angle),
-        };
-        return q;
+        return @bitCast(native.b2MakeRot(angle));
     }
 
     pub inline fn normalize(q: Rot) Rot {
         const mag: f32 = @sqrt((q.s * q.s) + (q.c * q.c));
-        const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
+        const invMag: f32 = if (mag > 0.0) 1.0 / mag else 0.0;
         const qn: Rot = Rot{
             .c = q.c * invMag,
             .s = q.s * invMag,
@@ -122,7 +118,8 @@ pub const Rot = extern struct {
 
     pub inline fn isNormalized(q: Rot) bool {
         const qq: f32 = (q.s * q.s) + (q.c * q.c);
-        return ((1.0 - 0.0006000000284984708) < qq) and (qq < (1.0 + 0.0006000000284984708));
+        // larger tolerance due to failure on mingw 32-bit
+        return ((1.0 - 0.0006) < qq) and (qq < (1.0 + 0.0006));
     }
 
     pub inline fn nLerp(q1: Rot, q2: Rot, t: f32) Rot {
@@ -140,7 +137,7 @@ pub const Rot = extern struct {
             .s = q1.s + (deltaAngle * q1.c),
         };
         const mag: f32 = @sqrt((q2.s * q2.s) + (q2.c * q2.c));
-        const invMag: f32 = if (@as(f64, @floatCast(mag)) > 0.0) 1.0 / mag else 0.0;
+        const invMag: f32 = if (mag > 0.0) 1.0 / mag else 0.0;
         const qn: Rot = Rot{
             .c = q2.c * invMag,
             .s = q2.s * invMag,
@@ -154,8 +151,7 @@ pub const Rot = extern struct {
     }
 
     pub inline fn toRadians(q: Rot) f32 {
-        // TODO: verify Y and X weren't accidentally swapped
-        return std.math.atan2(q.s, q.c);
+        return atan2(q.s, q.c);
     }
 
     pub inline fn getXAxis(q: Rot) Vec2 {
@@ -175,6 +171,10 @@ pub const Rot = extern struct {
     }
 
     pub inline fn mul(q: Rot, r: Rot) Rot {
+        // [qc -qs] * [rc -rs] = [qc*rc-qs*rs -qc*rs-qs*rc]
+        // [qs  qc]   [rs  rc]   [qs*rc+qc*rs -qs*rs+qc*rc]
+        // s(q + r) = qs * rc + qc * rs
+        // c(q + r) = qc * rc - qs * rs
         var qr: Rot = undefined;
         qr.s = (q.s * r.c) + (q.c * r.s);
         qr.c = (q.c * r.c) - (q.s * r.s);
@@ -182,6 +182,10 @@ pub const Rot = extern struct {
     }
 
     pub inline fn invMul(q: Rot, r: Rot) Rot {
+        // [ qc qs] * [rc -rs] = [qc*rc+qs*rs -qc*rs+qs*rc]
+        // [-qs qc]   [rs  rc]   [-qs*rc+qc*rs qs*rs+qc*rc]
+        // s(q - r) = qc * rs - qs * rc
+        // c(q - r) = qc * rc + qs * rs
         var qr: Rot = undefined;
         qr.s = (q.c * r.s) - (q.s * r.c);
         qr.c = (q.c * r.c) + (q.s * r.s);
@@ -191,7 +195,7 @@ pub const Rot = extern struct {
     pub inline fn relativeAngle(b: Rot, a: Rot) f32 {
         const s: f32 = (b.s * a.c) - (b.c * a.s);
         const c: f32 = (b.c * a.c) + (b.s * a.s);
-        return std.math.atan2(s, c);
+        return atan2(s, c);
     }
 
     pub inline fn rotateVector(q: Rot, v: Vec2) Vec2 {
@@ -398,15 +402,21 @@ pub const Vec2 = extern struct {
     }
 
     pub inline fn normalize(v: Vec2) Vec2 {
-        return @bitCast(native.b2Normalize(@bitCast(v)));
-    }
-
-    pub inline fn normalizeChecked(v: Vec2) Vec2 {
-        return @bitCast(native.b2NormalizeChecked(@bitCast(v)));
+        const _length = v.length();
+        if(_length < std.math.floatEps(f32)) {
+            return Vec2{.x = 0, .y = 0};
+        }
+        const invLength = 1.0 / _length;
+        return Vec2{.x = invLength * v.x, .y = invLength * v.y};
     }
 
     pub inline fn getLengthAndNormalize(len: *f32, v: Vec2) Vec2 {
-        return @bitCast(native.b2GetLengthAndNormalize(@ptrCast(len), @bitCast(v)));
+        len.* = v.length();
+        if(len.* < std.math.floatEps(f32)) {
+            return Vec2{.x = 0, .y = 0};
+        }
+        const invLength = 1.0 / len.*;
+        return Vec2{.x = invLength * v.x, .y = invLength * v.y};
     }
 
     x: f32,
@@ -424,8 +434,8 @@ pub const ShapeType = enum(c_uint) {
     capsule = 1,
     segment = 2,
     polygon = 3,
-    smoothSegment = 4,
-    // Yeetis Beatis Bonkis Donkis
+    chainSegment = 4,
+    // TODO: do we need this?
     shapeTypeCount = 5,
 };
 
@@ -443,7 +453,6 @@ pub const JointType = enum(c_uint) {
 pub const HexColor = enum(c_int) {
     pub const aliceBlue = 0xf0f8ff;
     pub const antiqueWhite = 0xfaebd7;
-    pub const aqua = 0x00ffff;
     pub const aquamarine = 0x7fffd4;
     pub const azure = 0xf0ffff;
     pub const beige = 0xf5f5dc;
@@ -486,7 +495,6 @@ pub const HexColor = enum(c_int) {
     pub const firebrick = 0xb22222;
     pub const floralWhite = 0xfffaf0;
     pub const forestGreen = 0x228b22;
-    pub const fuchsia = 0xff00ff;
     pub const gainsboro = 0xdcdcdc;
     pub const ghostWhite = 0xf8f8ff;
     pub const gold = 0xffd700;
@@ -528,7 +536,6 @@ pub const HexColor = enum(c_int) {
     pub const lightSlateGray = 0x778899;
     pub const lightSteelBlue = 0xb0c4de;
     pub const lightYellow = 0xffffe0;
-    pub const lime = 0x00ff00;
     pub const limeGreen = 0x32cd32;
     pub const linen = 0xfaf0e6;
     pub const magenta = 0xff00ff;
@@ -547,7 +554,6 @@ pub const HexColor = enum(c_int) {
     pub const mistyRose = 0xffe4e1;
     pub const moccasin = 0xffe4b5;
     pub const navajoWhite = 0xffdead;
-    pub const navy = 0x000080;
     pub const navyBlue = 0x000080;
     pub const oldLace = 0xfdf5e6;
     pub const olive = 0x808000;
@@ -605,6 +611,9 @@ pub const HexColor = enum(c_int) {
 
 // TODO: create a wrapper around DebugDraw so users of Box2D don't need to worry about the context type or calling convention
 pub const DebugDraw = extern struct {
+    pub inline fn default() DebugDraw {
+        return @bitCast(native.b2DefaultDebugDraw());
+    }
     DrawPolygon: *const fn ([*c]const Vec2, c_int, HexColor, ?*anyopaque) callconv(.C) void,
     DrawSolidPolygon: *const fn (Transform, [*c]const Vec2, c_int, f32, HexColor, ?*anyopaque) callconv(.C) void,
     DrawCircle: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
@@ -834,6 +843,7 @@ pub const BodyDef = extern struct {
     isBullet: bool,
     isEnabled: bool,
     automaticMass: bool,
+    allowFastRotation: bool,
     internalValue: i32,
 
     pub inline fn default() BodyDef {
@@ -850,8 +860,9 @@ pub const WorldDef = extern struct {
     contactDampingRatio: f32,
     jointHertz: f32,
     jointDampingRatio: f32,
+    maximumLinearVelocity: f32,
     enableSleep: bool,
-    enableContinous: bool,
+    enableContinuous: bool,
     workerCount: i32,
     // TODO: convert these callbacks manually & maybe make a wrapper?
     enqueueTask: ?*const native.b2EnqueueTaskCallback,
@@ -1106,12 +1117,12 @@ pub const JointId = extern struct {
         native.b2DistanceJoint_SetSpringDampingRatio(@bitCast(jointId), dampingRatio);
     }
 
-    pub inline fn distanceJointGetHertz(jointId: JointId) f32 {
-        return native.b2DistanceJoint_GetHertz(@bitCast(jointId));
+    pub inline fn distanceJointGetSpringHertz(jointId: JointId) f32 {
+        return native.b2DistanceJoint_GetSpringHertz(@bitCast(jointId));
     }
 
-    pub inline fn distanceJointGetDampingRatio(jointId: JointId) f32 {
-        return native.b2DistanceJoint_GetDampingRatio(@bitCast(jointId));
+    pub inline fn distanceJointGetSpringDampingRatio(jointId: JointId) f32 {
+        return native.b2DistanceJoint_GetSpringDampingRatio(@bitCast(jointId));
     }
 
     pub inline fn distanceJointEnableLimit(jointId: JointId, enableLimit: bool) void {
@@ -1312,6 +1323,10 @@ pub const JointId = extern struct {
 
     pub inline fn revoluteJointEnableSpring(jointId: JointId, enableSpring: bool) void {
         native.b2RevoluteJoint_EnableSpring(@bitCast(jointId), enableSpring);
+    }
+
+    pub inline fn revoluteJointIsSpringEnabled(jointId: JointId) bool {
+        return native.b2RevoluteJoint_IsSpringEnabled(@bitCast(jointId));
     }
 
     pub inline fn revoluteJointIsLimitEnabled(jointId: JointId) bool {
@@ -1632,8 +1647,8 @@ pub const ShapeId = extern struct {
         return native.b2Shape_TestPoint(@bitCast(shapeId), @bitCast(point));
     }
 
-    pub inline fn rayCast(shapeId: ShapeId, origin: Vec2, translation: Vec2) CastOutput {
-        return @bitCast(native.b2Shape_RayCast(@bitCast(shapeId), @bitCast(origin), @bitCast(translation)));
+    pub inline fn rayCast(shapeId: ShapeId, input: RayCastInput) CastOutput {
+        return @bitCast(native.b2Shape_RayCast(@bitCast(shapeId), @ptrCast(&input)));
     }
 
     pub inline fn getCircle(shapeId: ShapeId) Circle {
@@ -1644,8 +1659,8 @@ pub const ShapeId = extern struct {
         return @bitCast(native.b2Shape_GetSegment(@bitCast(shapeId)));
     }
 
-    pub inline fn getSmoothSegment(shapeId: ShapeId) SmoothSegment {
-        return @bitCast(native.b2Shape_GetSmoothSegment(@bitCast(shapeId)));
+    pub inline fn getChainSegment(shapeId: ShapeId) ChainSegment {
+        return @bitCast(native.b2Shape_GetChainSegment(@bitCast(shapeId)));
     }
 
     pub inline fn getCapsule(shapeId: ShapeId) Capsule {
@@ -1802,8 +1817,8 @@ pub const BodyId = extern struct {
         return native.b2Body_GetMass(@bitCast(bodyId));
     }
 
-    pub inline fn getInertiaTensor(bodyId: BodyId) f32 {
-        return native.b2Body_GetInertiaTensor(@bitCast(bodyId));
+    pub inline fn getRotationalInertia(bodyId: BodyId) f32 {
+        return native.b2Body_GetRotationalIntertia(@bitCast(bodyId));
     }
 
     pub inline fn getLocalCenterOfMass(bodyId: BodyId) Vec2 {
@@ -1874,8 +1889,8 @@ pub const BodyId = extern struct {
         return native.b2Body_IsSleepEnabled(@bitCast(bodyId));
     }
 
-    pub inline fn setSleepThreshold(bodyId: BodyId, sleepVelocity: f32) void {
-        native.b2Body_SetSleepThreshold(@bitCast(bodyId), sleepVelocity);
+    pub inline fn setSleepThreshold(bodyId: BodyId, sleepThreshold: f32) void {
+        native.b2Body_SetSleepThreshold(@bitCast(bodyId), sleepThreshold);
     }
 
     pub inline fn getSleepThreshold(bodyId: BodyId) f32 {
@@ -2024,8 +2039,8 @@ pub const Polygon = extern struct {
         return @bitCast(native.b2MakeRoundedBox(hx, hy, radius));
     }
 
-    pub inline fn makeOffsetBox(hx: f32, hy: f32, center: Vec2, angle: f32) Polygon {
-        return @bitCast(native.b2MakeOffsetBox(hx, hy, center, angle));
+    pub inline fn makeOffsetBox(hx: f32, hy: f32, center: Vec2, rotation: Rot) Polygon {
+        return @bitCast(native.b2MakeOffsetBox(hx, hy, center, @bitCast(rotation)));
     }
 };
 
@@ -2258,14 +2273,15 @@ pub const TreeNode = extern struct {
     };
 
     aabb: AABB,
-    categoryBits: u32,
+    categoryBits: u64,
+    // TODO: better name for this
     union0: Union0,
     child1: i32,
     child2: i32,
     userData: i32,
     height: i16,
     enlarged: bool,
-    pad: [9]u8,
+    pad: [5]u8,
 };
 
 // TODO: why are SimplexVertex and Simplex public?
@@ -2331,8 +2347,8 @@ pub const Circle = extern struct {
 };
 
 pub const Filter = extern struct {
-    categoryBits: u32,
-    maskBits: u32,
+    categoryBits: u64,
+    maskBits: u64,
     groupIndex: i32,
 
     pub inline fn default() Filter {
@@ -2361,7 +2377,7 @@ pub const DynamicTree = extern struct {
         native.b2DynamicTree_Destroy(@ptrCast(tree));
     }
 
-    pub inline fn createProxy(tree: *DynamicTree, aabb: AABB, categoryBits: u32, userData: i32) i32 {
+    pub inline fn createProxy(tree: *DynamicTree, aabb: AABB, categoryBits: u64, userData: i32) i32 {
         return native.b2DynamicTree_CreateProxy(@ptrCast(tree), @bitCast(aabb), categoryBits, userData);
     }
 
@@ -2369,8 +2385,8 @@ pub const DynamicTree = extern struct {
         native.b2DynamicTree_DestroyProxy(@ptrCast(tree), proxyId);
     }
 
-    pub inline fn clone(outTree: *DynamicTree, inTree: DynamicTree) void {
-        native.b2DynamicTree_Clone(@ptrCast(outTree), @ptrCast(&inTree));
+    pub inline fn clone(outTree: *DynamicTree, inTree: *const DynamicTree) void {
+        native.b2DynamicTree_Clone(@ptrCast(outTree), @ptrCast(inTree));
     }
 
     pub inline fn moveProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
@@ -2382,19 +2398,15 @@ pub const DynamicTree = extern struct {
     }
 
     // TODO: replace raw C callbacks with something more Zig friendly
-    pub inline fn queryFiltered(tree: DynamicTree, aabb: AABB, maskBits: u32, callback: *const TreeQueryCallbackFn, context: ?*anyopaque) void {
-        native.b2DynamicTree_QueryFiltered(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
+    pub inline fn query(tree: DynamicTree, aabb: AABB, maskBits: u64, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) void {
+        native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
     }
 
-    pub inline fn query(tree: DynamicTree, aabb: AABB, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) void {
-        native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), @ptrCast(callback), @ptrCast(context));
-    }
-
-    pub inline fn rayCast(tree: DynamicTree, input: RayCastInput, maskBits: u32, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) void {
+    pub inline fn rayCast(tree: DynamicTree, input: RayCastInput, maskBits: u64, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) void {
         native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
     }
 
-    pub inline fn shapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u32, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) void {
+    pub inline fn shapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u64, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) void {
         native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
     }
 
@@ -2448,16 +2460,16 @@ pub const AABB = extern struct {
     upperBound: Vec2,
 
     pub inline fn contains(a: AABB, b: AABB) bool {
-        var s: bool = @as(c_int, 1) != 0;
-        s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.x <= b.lowerBound.x);
-        s = (@as(c_int, @intFromBool(s)) != 0) and (a.lowerBound.y <= b.lowerBound.y);
-        s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.x <= a.upperBound.x);
-        s = (@as(c_int, @intFromBool(s)) != 0) and (b.upperBound.y <= a.upperBound.y);
+        var s: bool = true;
+        s = s and (a.lowerBound.x <= b.lowerBound.x);
+        s = s and (a.lowerBound.y <= b.lowerBound.y);
+        s = s and (b.upperBound.x <= a.upperBound.x);
+        s = s and (b.upperBound.y <= a.upperBound.y);
         return s;
     }
 
     pub inline fn center(a: AABB) Vec2 {
-        const b: Vec2 = Vec2{
+        const b = Vec2{
             .x = 0.5 * (a.lowerBound.x + a.upperBound.x),
             .y = 0.5 * (a.lowerBound.y + a.upperBound.y),
         };
@@ -2465,7 +2477,7 @@ pub const AABB = extern struct {
     }
 
     pub inline fn extents(a: AABB) Vec2 {
-        const b: Vec2 = Vec2{
+        const b = Vec2{
             .x = 0.5 * (a.upperBound.x - a.lowerBound.x),
             .y = 0.5 * (a.upperBound.y - a.lowerBound.y),
         };
@@ -2488,8 +2500,8 @@ pub const AABB = extern struct {
 };
 
 pub const QueryFilter = extern struct {
-    categoryBits: u32,
-    maskBits: u32,
+    categoryBits: u64,
+    maskBits: u64,
 
     pub inline fn default() QueryFilter {
         return @bitCast(native.b2DefaultQueryFilter());
@@ -2497,7 +2509,6 @@ pub const QueryFilter = extern struct {
 };
 
 // These functions don't fit into any of the structs.
-// TODO: would it be worth making a separate struct for things like unwindAngle?
 
 pub inline fn getByteCount() usize {
     return @intCast(native.b2GetByteCount());
@@ -2515,7 +2526,9 @@ pub inline fn getVersion() Version {
     return @bitCast(native.b2GetVersion());
 }
 
-// TODO: replace to take Zig allocator. The free function does not have a length argument while Zig allocators require that. probably just add a usize worth of extra bytes per allocation to store the length.
+// TODO: replace to take Zig allocator.
+// The free function does not have a length argument while Zig allocators require that.
+// probably just add a usize worth of extra bytes per allocation to store the length.
 pub inline fn setAllocator(alloc: *AllocFn, free: *FreeFn) void {
     native.b2SetAllocator(@ptrCast(&alloc), @ptrCast(&free));
 }
@@ -2533,6 +2546,25 @@ pub inline fn unwindAngle(angle: f32) f32 {
         return angle - (2.0 * std.math.pi);
     }
     return angle;
+}
+
+pub inline fn unwindLargeAngle(angle: f32) f32 {
+    var realAngle = angle;
+    while(realAngle > std.math.pi) {
+        realAngle -= 2.0 * std.path.pi;
+    }
+
+    while(realAngle < -std.math.pi) {
+        realAngle += 2.0 * std.path.pi;
+    }
+
+    return realAngle;
+}
+
+// These may seem redundant, but they make use of Box2D's determinism
+
+pub inline fn atan2(y: f32, x: f32) f32 {
+    return native.b2Atan2(y, x);
 }
 
 pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDistanceResult {
@@ -2579,16 +2611,16 @@ pub inline fn collideSegmentAndPolygon(segmentA: Segment, xfA: Transform, polygo
     return @bitCast(native.b2CollideSegmentAndPolygon(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collideSmoothSegmentAndCircle(smoothSegmentA: SmoothSegment, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
-    return @bitCast(native.b2CollideSmoothSegmentAndCircle(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
+pub inline fn collideChainSegmentAndCircle(chainSegmentA: ChainSegment, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
+    return @bitCast(native.b2CollideChainSegmentAndCircle(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
 }
 
-pub inline fn collideSmoothSegmentAndCapsule(smoothSegmentA: SmoothSegment, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideSmoothSegmentAndCapsule(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
+pub inline fn collideChainSegmentAndCapsule(chainSegmentA: ChainSegment, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideChainSegmentAndCapsule(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
 }
 
-pub inline fn collideSmoothSegmentAndPolygon(smoothSegmentA: SmoothSegment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideSmoothSegmentAndPolygon(@ptrCast(&smoothSegmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
+pub inline fn collideChainSegmentAndPolygon(chainSegmentA: ChainSegment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+    return @bitCast(native.b2CollideChainSegmentAndPolygon(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
 }
 
 // This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
@@ -2608,8 +2640,7 @@ fn recursivelyRefAllDeclsExceptNative(T: type) void {
 }
 
 // The only point of this test is to make sure Box2D is linked correctly.
-// It is essentially a copy of test/test_math.c
-// Box2D itself is well tested. Seeing as this binding is quite simple, I don't think it needs extensive unit testing beyond this.
+// TODO: fully translate all of Box2D's tests
 test "MathTest" {
     const zero = native.b2Vec2_zero;
     const one = native.b2Vec2{ .x = 1.0, .y = 1.0 };
@@ -2676,7 +2707,7 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(Segment, native.b2Segment));
     try std.testing.expect(structsAreABICompatible(Filter, native.b2Filter));
     try std.testing.expect(structsAreABICompatible(CastOutput, native.b2CastOutput));
-    try std.testing.expect(structsAreABICompatible(SmoothSegment, native.b2SmoothSegment));
+    try std.testing.expect(structsAreABICompatible(ChainSegment, native.b2ChainSegment));
     try std.testing.expect(structsAreABICompatible(ChainId, native.b2ChainId));
     try std.testing.expect(structsAreABICompatible(ChainDef, native.b2ChainDef));
     try std.testing.expect(structsAreABICompatible(DistanceJointDef, native.b2DistanceJointDef));

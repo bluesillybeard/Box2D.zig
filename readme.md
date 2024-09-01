@@ -39,7 +39,9 @@ I suggest using the native option `@import("box2d").native` for now, however the
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
-    - My only worry is with simd
+    - translate benchmarks
+    - option for BOX2D_ENABLE_SIMD
+    - option for BOX2D_AVX2
 - add option for b2_maxWorlds
     - This isn't even in Box2D's build system as far as I can tell, need to edit the source code for that?
 - Work on the actual binding (see [Other notes](#other-notes))
@@ -50,7 +52,6 @@ I suggest using the native option `@import("box2d").native` for now, however the
 - there are a lot of TODOs regaurding automatic validation of the binding
 - package this into various places
     - build.zig.zon
-    - 
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:
