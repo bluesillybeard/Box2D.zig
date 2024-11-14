@@ -25,24 +25,23 @@ pub const maxPolygonVertices = native.b2_maxPolygonVertices;
 // general types
 
 pub const Counters = extern struct {
-    staticBodyCount: i32,
-	bodyCount: i32,
-	shapeCount: i32,
-	contactCount: i32,
-	jointCount: i32,
-	islandCount: i32,
-	stackUsed: i32,
-	staticTreeHeight: i32,
-	treeHeight: i32,
-	byteCount: i32,
-	taskCount: i32,
-	colorCounts: [12]i32,
+    bodyCount: i32,
+    shapeCount: i32,
+    contactCount: i32,
+    jointCount: i32,
+    islandCount: i32,
+    stackUsed: i32,
+    staticTreeHeight: i32,
+    treeHeight: i32,
+    byteCount: i32,
+    taskCount: i32,
+    colorCounts: [12]i32,
 };
 
 pub const MassData = extern struct {
     mass: f32,
     center: Vec2,
-    rotationalInertia: f32
+    rotationalInertia: f32,
 };
 
 pub const ContactData = extern struct {
@@ -66,7 +65,6 @@ pub const ChainSegment = extern struct {
     ghost2: Vec2,
     chainId: i32,
 };
-
 
 /// Profiling data. Times are in milliseconds.
 pub const Profile = extern struct {
@@ -101,7 +99,6 @@ pub const Version = extern struct {
 };
 
 pub const Rot = extern struct {
-
     pub inline fn fromRadians(angle: f32) Rot {
         return @bitCast(native.b2MakeRot(angle));
     }
@@ -403,24 +400,29 @@ pub const Vec2 = extern struct {
 
     pub inline fn normalize(v: Vec2) Vec2 {
         const _length = v.length();
-        if(_length < std.math.floatEps(f32)) {
-            return Vec2{.x = 0, .y = 0};
+        if (_length < std.math.floatEps(f32)) {
+            return Vec2{ .x = 0, .y = 0 };
         }
         const invLength = 1.0 / _length;
-        return Vec2{.x = invLength * v.x, .y = invLength * v.y};
+        return Vec2{ .x = invLength * v.x, .y = invLength * v.y };
     }
 
     pub inline fn getLengthAndNormalize(len: *f32, v: Vec2) Vec2 {
         len.* = v.length();
-        if(len.* < std.math.floatEps(f32)) {
-            return Vec2{.x = 0, .y = 0};
+        if (len.* < std.math.floatEps(f32)) {
+            return Vec2{ .x = 0, .y = 0 };
         }
         const invLength = 1.0 / len.*;
-        return Vec2{.x = invLength * v.x, .y = invLength * v.y};
+        return Vec2{ .x = invLength * v.x, .y = invLength * v.y };
     }
 
     x: f32,
     y: f32,
+};
+
+pub const CosSin = extern struct {
+    cosine: f32,
+    sine: f32,
 };
 
 pub const BodyType = enum(c_uint) {
@@ -435,14 +437,13 @@ pub const ShapeType = enum(c_uint) {
     segment = 2,
     polygon = 3,
     chainSegment = 4,
-    // TODO: do we need this?
-    shapeTypeCount = 5,
 };
 
 pub const JointType = enum(c_uint) {
     distance,
     motor,
     mouse,
+    null,
     prismatic,
     revolute,
     weld,
@@ -606,7 +607,7 @@ pub const HexColor = enum(c_int) {
     pub const box2DGreen = 0x8cc924;
     pub const box2DYellow = 0xffee8c;
     // this is only an "enum" so we can have a type that behaves exactly like an int, but has declarations.
-    _
+    _,
 };
 
 // TODO: create a wrapper around DebugDraw so users of Box2D don't need to worry about the context type or calling convention
@@ -614,16 +615,15 @@ pub const DebugDraw = extern struct {
     pub inline fn default() DebugDraw {
         return @bitCast(native.b2DefaultDebugDraw());
     }
-    DrawPolygon: *const fn ([*c]const Vec2, c_int, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawSolidPolygon: *const fn (Transform, [*c]const Vec2, c_int, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawCircle: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawSolidCircle: *const fn (Transform, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawCapsule: *const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawSolidCapsule: *const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawSegment: *const fn (Vec2, Vec2, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawTransform: *const fn (Transform, ?*anyopaque) callconv(.C) void,
-    DrawPoint: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    DrawString: *const fn (Vec2, [*c]const u8, ?*anyopaque) callconv(.C) void,
+    drawPolygon: *const fn ([*c]const Vec2, c_int, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSolidPolygon: *const fn (Transform, [*c]const Vec2, c_int, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawCircle: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSolidCircle: *const fn (Transform, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSolidCapsule: *const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSegment: *const fn (Vec2, Vec2, HexColor, ?*anyopaque) callconv(.C) void,
+    drawTransform: *const fn (Transform, ?*anyopaque) callconv(.C) void,
+    drawPoint: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawString: *const fn (Vec2, [*c]const u8, ?*anyopaque) callconv(.C) void,
     drawingBounds: AABB,
     useDrawingBounds: bool,
     drawShapes: bool,
@@ -653,7 +653,8 @@ pub const ShapeDef = extern struct {
     enableContactEvents: bool,
     enableHitEvents: bool,
     enablePreSolveEvents: bool,
-    forceContactCreation: bool,
+    invokeContactCreation: bool,
+    updateBodyMass: bool,
     internalValue: i32,
 
     pub inline fn default() ShapeDef {
@@ -668,6 +669,7 @@ pub const ChainDef = extern struct {
     friction: f32,
     restitution: f32,
     filter: Filter,
+    customColor: u32,
     isLoop: bool,
     internalValue: i32,
 
@@ -730,6 +732,17 @@ pub const MouseJointDef = extern struct {
 
     pub inline fn default() MouseJointDef {
         return @bitCast(native.b2DefaultMouseJointDef());
+    }
+};
+
+pub const NullJointDef = extern struct {
+    bodyIdA: BodyId,
+    bodyIdB: BodyId,
+    userData: ?*anyopaque,
+    internalValue: i32,
+
+    pub inline fn default() NullJointDef {
+        return @bitCast(native.b2DefaultNullJointDef());
     }
 };
 
@@ -826,6 +839,18 @@ pub const WheelJointDef = extern struct {
     }
 };
 
+pub const ExplosionDef = extern struct {
+    maskBits: u64,
+    position: Vec2,
+    radius: f32,
+    falloff: f32,
+    impulsePerLength: f32,
+
+    pub inline fn default() ExplosionDef {
+        return @bitCast(native.b2DefaultExplosionDef());
+    }
+};
+
 pub const BodyDef = extern struct {
     type: BodyType,
     position: Vec2,
@@ -842,7 +867,6 @@ pub const BodyDef = extern struct {
     fixedRotation: bool,
     isBullet: bool,
     isEnabled: bool,
-    automaticMass: bool,
     allowFastRotation: bool,
     internalValue: i32,
 
@@ -861,6 +885,8 @@ pub const WorldDef = extern struct {
     jointHertz: f32,
     jointDampingRatio: f32,
     maximumLinearVelocity: f32,
+    frictionMixingRule: MixingRule,
+    restitutionMixingRule: MixingRule,
     enableSleep: bool,
     enableContinuous: bool,
     workerCount: i32,
@@ -868,6 +894,7 @@ pub const WorldDef = extern struct {
     enqueueTask: ?*const native.b2EnqueueTaskCallback,
     finishTask: ?*const native.b2FinishTaskCallback,
     userTaskContext: ?*anyopaque,
+    userData: ?*anyopaque,
     internalValue: i32,
 
     pub inline fn default() WorldDef {
@@ -910,60 +937,84 @@ pub const WorldId = extern struct {
         return @bitCast(native.b2World_GetContactEvents(@bitCast(worldId)));
     }
 
-    pub inline fn overlapAABB(worldId: WorldId, aabb: AABB, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapAABB(@bitCast(worldId), @bitCast(aabb), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
+    pub inline fn overlapAABB(worldId: WorldId, aabb: AABB, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_OverlapAABB(@bitCast(worldId), @bitCast(aabb), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context)));
     }
 
-    pub inline fn overlapCircle(worldId: WorldId, circle: Circle, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapCircle(@bitCast(worldId), @ptrCast(&circle), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
+    pub inline fn overlapCircle(worldId: WorldId, circle: Circle, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_OverlapCircle(@bitCast(worldId), @ptrCast(&circle), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context)));
     }
 
-    pub inline fn overlapCapsule(worldId: WorldId, capsule: Capsule, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapCapsule(@bitCast(worldId), @ptrCast(&capsule), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
+    pub inline fn overlapPoint(worldId: WorldId, point: Vec2, transform: Transform, filter: QueryFilter, overlapFn: OverlapResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_OverlapPoint(@bitCast(worldId), @bitCast(point), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), context));
     }
 
-    pub inline fn overlapPolygon(worldId: WorldId, polygon: Polygon, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) void {
-        native.b2World_OverlapPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context));
+    pub inline fn overlapCapsule(worldId: WorldId, capsule: Capsule, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_OverlapCapsule(@bitCast(worldId), @ptrCast(&capsule), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context)));
     }
 
-    pub inline fn castRay(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CastRay(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn overlapPolygon(worldId: WorldId, polygon: Polygon, transform: Transform, filter: QueryFilter, overlapFn: *OverlapResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_OverlapPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(transform), @bitCast(filter), @ptrCast(overlapFn), @ptrCast(context)));
+    }
+
+    pub inline fn castRay(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_CastRay(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context)));
     }
 
     pub inline fn rayCastClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
         return @bitCast(native.b2World_RayCastClosest(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter)));
     }
 
-    pub inline fn castCircle(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CastCircle(@bitCast(worldId), @ptrCast(&circle), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castCircle(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_CastCircle(@bitCast(worldId), @ptrCast(&circle), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context)));
     }
 
-    pub inline fn castCapsule(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CastCapsule(@bitCast(worldId), @ptrCast(&capsule), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castCapsule(worldId: WorldId, capsule: Capsule, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_CastCapsule(@bitCast(worldId), @ptrCast(&capsule), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context)));
     }
 
-    pub inline fn castPolygon(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) void {
-        native.b2World_CastPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context));
+    pub inline fn castPolygon(worldId: WorldId, polygon: Polygon, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2World_CastPolygon(@bitCast(worldId), @ptrCast(&polygon), @bitCast(originTransform), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context)));
     }
 
     pub inline fn enableSleeping(worldId: WorldId, flag: bool) void {
         native.b2World_EnableSleeping(@bitCast(worldId), flag);
     }
 
+    pub inline fn isSleepingEnabled(worldId: WorldId) bool {
+        return native.b2World_IsSleepingEnabled(@bitCast(worldId));
+    }
+
     pub inline fn enableWarmStarting(worldId: WorldId, flag: bool) void {
         native.b2World_EnableWarmStarting(@bitCast(worldId), flag);
+    }
+
+    pub inline fn isWarmStartingEnabled(worldId: WorldId) bool {
+        return native.b2World_IsWarmStartingEnabled(@bitCast(worldId));
     }
 
     pub inline fn enableContinuous(worldId: WorldId, flag: bool) void {
         native.b2World_EnableContinuous(@bitCast(worldId), flag);
     }
 
+    pub inline fn isContinuousEnabled(worldId: WorldId) bool {
+        native.b2World_IsContinuousEnabled(@bitCast(worldId));
+    }
+
     pub inline fn setRestitutionThreshold(worldId: WorldId, value: f32) void {
         native.b2World_SetRestitutionThreshold(@bitCast(worldId), value);
     }
 
+    pub inline fn getRestitutionThreshold(worldId: WorldId) f32 {
+        return native.b2World_GetRestitutionThreshold(worldId);
+    }
+
     pub inline fn setHitEventThreshold(worldId: WorldId, value: f32) void {
         native.b2World_SetHitEventThreshold(@bitCast(worldId), value);
+    }
+
+    pub inline fn getHitEventThreshold(worldId: WorldId) f32 {
+        return native.b2World_GetHitEventThreshold(worldId);
     }
 
     pub inline fn setPreSolveCallback(worldId: WorldId, preSolveFn: ?*PreSolveFn, context: ?*anyopaque) void {
@@ -978,12 +1029,32 @@ pub const WorldId = extern struct {
         return @bitCast(native.b2World_GetGravity(@bitCast(worldId)));
     }
 
-    pub inline fn explode(worldId: WorldId, position: Vec2, radius: f32, impulse: f32) void {
-        native.b2World_Explode(@bitCast(worldId), @bitCast(position), radius, impulse);
+    pub inline fn explode(worldId: WorldId, explosionDef: ExplosionDef) void {
+        native.b2World_Explode(@bitCast(worldId), @ptrCast(&explosionDef));
     }
 
     pub inline fn setContactTuning(worldId: WorldId, hertz: f32, dampingRatio: f32, pushVelocity: f32) void {
         native.b2World_SetContactTuning(@bitCast(worldId), hertz, dampingRatio, pushVelocity);
+    }
+
+    pub inline fn setJointTuning(worldId: WorldId, hertz: f32, dampingRatio: f32) void {
+        native.b2World_SetJointTuning(@bitCast(worldId), hertz, dampingRatio);
+    }
+
+    pub inline fn setMaximumLinearVelocity(worldId: WorldId, maximumLinearVelocity: f32) void {
+        native.b2World_SetMaximumLinearVelocity(@bitCast(worldId), maximumLinearVelocity);
+    }
+
+    pub inline fn getMaximumLinearVelocity(worldId: WorldId) f32 {
+        return native.b2World_GetMaximumLinearVelocity(@bitCast(worldId));
+    }
+
+    pub inline fn setUserData(worldId: WorldId, userData: ?*anyopaque) void {
+        native.b2World_SetUserData(@bitCast(worldId), userData);
+    }
+
+    pub inline fn getUserData(worldId: WorldId) ?*anyopaque {
+        return native.b2World_GetUserData(@bitCast(worldId));
     }
 
     pub inline fn getProfile(worldId: WorldId) Profile {
@@ -998,6 +1069,10 @@ pub const WorldId = extern struct {
         native.b2World_DumpMemoryStats(@bitCast(worldId));
     }
 
+    pub inline fn rebuildStaticTree(worldId: WorldId) void {
+        native.b2World_RebuildStaticTree(@bitCast(worldId));
+    }
+
     index1: u16,
     revision: u16,
 };
@@ -1006,6 +1081,10 @@ pub const JointId = extern struct {
     index1: i32,
     world0: u16,
     revision: u16,
+
+    pub inline fn createNullJoint(worldId: WorldId, def: NullJointDef) JointId {
+        return @bitCast(native.b2CreateNullJoint(@bitCast(worldId), @ptrCast(&def)));
+    }
 
     pub inline fn createDistanceJoint(worldId: WorldId, def: DistanceJointDef) JointId {
         return @bitCast(native.b2CreateDistanceJoint(@bitCast(worldId), @ptrCast(&def)));
@@ -1031,6 +1110,46 @@ pub const JointId = extern struct {
         return @bitCast(native.b2CreateWeldJoint(@bitCast(worldId), @ptrCast(&def)));
     }
 
+    pub inline fn weldJointGetReferenceAngle(jointId: JointId) f32 {
+        return native.b2WeldJoint_GetReferenceAngle(@bitCast(jointId));
+    }
+
+    pub inline fn weldJointSetReferenceAngle(jointId: JointId, angleInRadians: f32) void {
+        native.b2WeldJoint_SetReferenceAngle(@bitCast(jointId), angleInRadians);
+    }
+
+    pub inline fn weldJointSetLinearHertz(jointId: JointId, hertz: f32) void {
+        return native.b2WeldJoint_SetLinearHertz(@bitCast(jointId), hertz);
+    }
+
+    pub inline fn weldJointGetLinearHertz(jointId: JointId) f32 {
+        return native.b2WeldJoint_GetLinearHertz(@bitCast(jointId));
+    }
+
+    pub inline fn weldJointSetLinearDampingRatio(jointId: JointId, dampingRatio: f32) void {
+        native.b2WeldJoint_SetLinearDampingRatio(@bitCast(jointId), dampingRatio);
+    }
+
+    pub inline fn weldJointGetLinearDampingRatio(jointId: JointId) f32 {
+        return native.b2WeldJoint_GetLinearDampingRatio(@bitCast(jointId));
+    }
+
+    pub inline fn weldJointSetAngularHertz(jointId: JointId, hertz: f32) void {
+        return native.b2WeldJoint_SetAngularHertz(@bitCast(jointId), hertz);
+    }
+
+    pub inline fn weldJointGetAngularHertz(jointId: JointId) f32 {
+        return native.b2WeldJoint_GetAngularHertz(@bitCast(jointId));
+    }
+
+    pub inline fn weldJointSetAngularDampingRatio(jointId: JointId, dampingRatio: f32) void {
+        native.b2WeldJoint_SetAngularDampingRatio(@bitCast(jointId), dampingRatio);
+    }
+
+    pub inline fn weldJointGetAngularDampingRatio(jointId: JointId) f32 {
+        return native.b2WeldJoint_GetAngularDampingRatio(@bitCast(jointId));
+    }
+
     pub inline fn createWheelJoint(worldId: WorldId, def: WheelJointDef) JointId {
         return @bitCast(native.b2CreateWheelJoint(@bitCast(worldId), @ptrCast(&def)));
     }
@@ -1042,6 +1161,10 @@ pub const JointId = extern struct {
 
     pub inline fn isValid(id: JointId) bool {
         return native.b2Joint_IsValid(@bitCast(id));
+    }
+
+    pub inline fn getWorld(jointId: JointId) WorldId {
+        return @bitCast(native.b2Joint_GetWorld(@bitCast(jointId)));
     }
 
     pub inline fn getType(jointId: JointId) JointType {
@@ -1321,6 +1444,14 @@ pub const JointId = extern struct {
         return native.b2PrismaticJoint_GetMaxMotorForce(@bitCast(jointId));
     }
 
+    pub inline fn prismaticJointGetTranslation(jointId: JointId) f32 {
+        return native.b2PrismaticJoint_GetTranslation(@bitCast(jointId));
+    }
+
+    pub inline fn prismaticJointGetSpeed(jointId: JointId) f32 {
+        return native.b2PrismaticJoint_GetSpeed(@bitCast(jointId));
+    }
+
     pub inline fn revoluteJointEnableSpring(jointId: JointId, enableSpring: bool) void {
         native.b2RevoluteJoint_EnableSpring(@bitCast(jointId), enableSpring);
     }
@@ -1469,36 +1600,12 @@ pub const JointId = extern struct {
         return native.b2WheelJoint_GetMaxMotorTorque(@bitCast(jointId));
     }
 
-    pub inline fn weldJointSetLinearHertz(jointId: JointId, hertz: f32) void {
-        return native.b2WeldJoint_SetLinearHertz(@bitCast(jointId), hertz);
+    pub inline fn store(jointId: JointId) u64 {
+        return native.b2StoreJointId(@bitCast(jointId));
     }
 
-    pub inline fn weldJointGetLinearHertz(jointId: JointId) f32 {
-        return native.b2WeldJoint_GetLinearHertz(@bitCast(jointId));
-    }
-
-    pub inline fn weldJointSetLinearDampingRatio(jointId: JointId, dampingRatio: f32) void {
-        native.b2WeldJoint_SetLinearDampingRatio(@bitCast(jointId), dampingRatio);
-    }
-
-    pub inline fn weldJointGetLinearDampingRatio(jointId: JointId) f32 {
-        return native.b2WeldJoint_GetLinearDampingRatio(@bitCast(jointId));
-    }
-
-    pub inline fn weldJointSetAngularHertz(jointId: JointId, hertz: f32) void {
-        return native.b2WeldJoint_SetAngularHertz(@bitCast(jointId), hertz);
-    }
-
-    pub inline fn weldJointGetAngularHertz(jointId: JointId) f32 {
-        return native.b2WeldJoint_GetAngularHertz(@bitCast(jointId));
-    }
-
-    pub inline fn weldJointSetAngularDampingRatio(jointId: JointId, dampingRatio: f32) void {
-        native.b2WeldJoint_SetAngularDampingRatio(@bitCast(jointId), dampingRatio);
-    }
-
-    pub inline fn weldJointGetAngularDampingRatio(jointId: JointId) f32 {
-        return native.b2WeldJoint_GetAngularDampingRatio(@bitCast(jointId));
+    pub inline fn load(x: u64) JointId {
+        return @bitCast(native.b2LoadJointId(x));
     }
 };
 
@@ -1524,8 +1631,28 @@ pub const ChainId = extern struct {
         native.b2Chain_SetRestitution(@bitCast(chainId), restitution);
     }
 
+    pub inline fn getWorld(chainId: ChainId) WorldId {
+        return @bitCast(native.b2Chain_GetWorld(@bitCast(chainId)));
+    }
+
+    pub inline fn getSegmentCount(chainId: ChainId) usize {
+        return @intCast(native.b2Chain_GetSegmentCount(@bitCast(chainId)));
+    }
+
+    pub inline fn getSegments(chainId: ChainId, segmentArray: []ShapeId) usize {
+        return @intCast(native.b2Chain_GetSegments(@bitCast(chainId), segmentArray.ptr, @intCast(segmentArray.len)));
+    }
+
     pub inline fn isValid(id: ChainId) bool {
         return native.b2Chain_IsValid(@bitCast(id));
+    }
+
+    pub inline fn store(chainId: ChainId) u64 {
+        return native.b2StoreChainId(@bitCast(chainId));
+    }
+
+    pub inline fn load(x: u64) ChainId {
+        return @bitCast(native.b2LoadChainId(x));
     }
 };
 
@@ -1550,9 +1677,9 @@ pub const ShapeId = extern struct {
         return @bitCast(native.b2CreatePolygonShape(@bitCast(bodyId), @ptrCast(&def), @ptrCast(&polygon)));
     }
 
-    // renamed forom destroy to deinit to follow zig patterns
-    pub inline fn deinit(shapeId: ShapeId) void {
-        native.b2DestroyShape(@bitCast(shapeId));
+    // renamed from destroy to deinit to follow zig patterns
+    pub inline fn deinit(shapeId: ShapeId, updateBodyMass: bool) void {
+        native.b2DestroyShape(@bitCast(shapeId), updateBodyMass);
     }
 
     pub inline fn isValid(id: ShapeId) bool {
@@ -1567,6 +1694,10 @@ pub const ShapeId = extern struct {
         return @bitCast(native.b2Shape_GetBody(@bitCast(shapeId)));
     }
 
+    pub inline fn getWorld(shapeId: ShapeId) WorldId {
+        return @bitCast(native.b2Shape_GetWorld(@bitCast(shapeId)));
+    }
+
     pub inline fn isSensor(shapeId: ShapeId) bool {
         return native.b2Shape_IsSensor(@bitCast(shapeId));
     }
@@ -1579,8 +1710,8 @@ pub const ShapeId = extern struct {
         return @ptrCast(native.b2Shape_GetUserData(@bitCast(shapeId)));
     }
 
-    pub inline fn setDensity(shapeId: ShapeId, density: f32) void {
-        native.b2Shape_SetDensity(@bitCast(shapeId), density);
+    pub inline fn setDensity(shapeId: ShapeId, density: f32, updateBodyMass: bool) void {
+        native.b2Shape_SetDensity(@bitCast(shapeId), density, updateBodyMass);
     }
 
     pub inline fn getDensity(shapeId: ShapeId) f32 {
@@ -1706,6 +1837,14 @@ pub const ShapeId = extern struct {
     pub inline fn getClosestPoint(shapeId: ShapeId, target: Vec2) Vec2 {
         return @bitCast(native.b2Shape_GetClosestPoint(@bitCast(shapeId), @bitCast(target)));
     }
+
+    pub inline fn store(shapeId: ShapeId) u64 {
+        return native.b2StoreShapeId(@bitCast(shapeId));
+    }
+
+    pub inline fn load(x: u32) ShapeId {
+        return @bitCast(native.b2LoadShapeId(x));
+    }
 };
 
 pub const BodyId = extern struct {
@@ -1719,6 +1858,10 @@ pub const BodyId = extern struct {
 
     pub inline fn isValid(id: BodyId) bool {
         return native.b2Body_IsValid(@bitCast(id));
+    }
+
+    pub inline fn getWorld(id: BodyId) WorldId {
+        return @bitCast(native.b2Body_GetWorld(@bitCast(id)));
     }
 
     pub inline fn getType(bodyId: BodyId) BodyType {
@@ -1841,14 +1984,6 @@ pub const BodyId = extern struct {
         native.b2Body_ApplyMassFromShapes(@bitCast(bodyId));
     }
 
-    pub inline fn setAutomaticMass(bodyId: BodyId, automaticMass: bool) void {
-        native.b2Body_SetAutomaticMass(@bitCast(bodyId), automaticMass);
-    }
-
-    pub inline fn getAutomaticMass(bodyId: BodyId) bool {
-        return native.b2Body_GetAutomaticMass(@bitCast(bodyId));
-    }
-
     pub inline fn setLinearDamping(bodyId: BodyId, linearDamping: f32) void {
         native.b2Body_SetLinearDamping(@bitCast(bodyId), linearDamping);
     }
@@ -1957,6 +2092,14 @@ pub const BodyId = extern struct {
         return @bitCast(native.b2Body_ComputeAABB(@bitCast(bodyId)));
     }
 
+    pub inline fn store(bodyId: BodyId) u64 {
+        return native.b2StoreBodyId(@bitCast(bodyId));
+    }
+
+    pub inline fn load(x: u64) BodyId {
+        return @bitCast(native.b2LoadBodyId(x));
+    }
+
     index1: i32,
     world0: u16,
     revision: u16,
@@ -1972,8 +2115,12 @@ pub const Hull = extern struct {
         return @bitCast(native.b2MakePolygon(@ptrCast(&hull), radius));
     }
 
-    pub inline fn makeOffsetPolygon(hull: Hull, radius: f32, transform: Transform) Polygon {
-        return @bitCast(native.b2MakeOffsetPolygon(@ptrCast(&hull), radius, @bitCast(transform)));
+    pub inline fn makeOffsetPolygon(hull: Hull, position: Vec2, rotation: Rot) Polygon {
+        return @bitCast(native.b2MakeOffsetPolygon(@ptrCast(&hull), @bitCast(position), @bitCast(rotation)));
+    }
+
+    pub inline fn makeOffsetRoundedPolygon(hull: Hull, position: Vec2, rotation: Rot, radius: f32) Polygon {
+        return @bitCast(native.b2MakeOffsetRoundedPolygon(&hull, @bitCast(position), @bitCast(rotation), radius));
     }
 
     pub inline fn compute(points: []const Vec2) Hull {
@@ -2041,6 +2188,10 @@ pub const Polygon = extern struct {
 
     pub inline fn makeOffsetBox(hx: f32, hy: f32, center: Vec2, rotation: Rot) Polygon {
         return @bitCast(native.b2MakeOffsetBox(hx, hy, center, @bitCast(rotation)));
+    }
+
+    pub inline fn makeOffsetRoundedBox(hx: f32, hy: f32, center: Vec2, rotation: Rot, radius: f32) Polygon {
+        return @bitCast(native.b2MakeOffsetRoundedBox(hx, hy, @bitCast(center), @bitCast(rotation), radius));
     }
 };
 
@@ -2164,7 +2315,7 @@ pub const ShapeCastInput = extern struct {
     radius: f32,
     translation: Vec2,
     maxFraction: f32,
-    
+
     // TODO: should these actually be in the individual shape structs?
     pub inline fn circle(input: ShapeCastInput, shape: Circle) CastOutput {
         return @bitCast(native.b2ShapeCastCircle(@ptrCast(&input), @ptrCast(&shape)));
@@ -2215,6 +2366,7 @@ pub const SensorEvents = extern struct {
 pub const ContactBeginTouchEvent = extern struct {
     shapeIdA: ShapeId,
     shapeIdB: ShapeId,
+    manifold: Manifold,
 };
 
 pub const ContactEndTouchEvent = extern struct {
@@ -2266,22 +2418,25 @@ pub const TOIState = enum(c_int) {
 };
 
 pub const TreeNode = extern struct {
-
-    pub const Union0 = extern union {
+    const ParentOrNextUnion = extern union {
         parent: i32,
         next: i32,
     };
 
+    const Child2OrUserDataUnion = extern union {
+        child2: i32,
+        userData: i32,
+    };
+
     aabb: AABB,
     categoryBits: u64,
-    // TODO: better name for this
-    union0: Union0,
+    // The lack of inline unions in Zig does make this slightly annoying,
+    // That being said I quite like the fact that inline unions are not an option.
+    parentOrNext: ParentOrNextUnion,
     child1: i32,
-    child2: i32,
-    userData: i32,
-    height: i16,
-    enlarged: bool,
-    pad: [5]u8,
+    child2OrUserData: Child2OrUserDataUnion,
+    height: u16,
+    flags: u16,
 };
 
 // TODO: why are SimplexVertex and Simplex public?
@@ -2325,9 +2480,18 @@ pub const RayResult = extern struct {
     point: Vec2,
     normal: Vec2,
     fraction: f32,
+    nodeVisits: c_int,
+    leafVisits: c_int,
     hit: bool,
 };
 
+pub const MixingRule = enum(c_int) {
+    average,
+    geometricMean,
+    multiply,
+    minimum,
+    maximum,
+};
 
 pub const Circle = extern struct {
     center: Vec2,
@@ -2398,16 +2562,16 @@ pub const DynamicTree = extern struct {
     }
 
     // TODO: replace raw C callbacks with something more Zig friendly
-    pub inline fn query(tree: DynamicTree, aabb: AABB, maskBits: u64, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) void {
-        native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context));
+    pub inline fn query(tree: DynamicTree, aabb: AABB, maskBits: u64, callback: ?*const TreeQueryCallbackFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2DynamicTree_Query(@ptrCast(&tree), @bitCast(aabb), maskBits, @ptrCast(callback), @ptrCast(context)));
     }
 
-    pub inline fn rayCast(tree: DynamicTree, input: RayCastInput, maskBits: u64, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) void {
-        native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
+    pub inline fn rayCast(tree: DynamicTree, input: RayCastInput, maskBits: u64, callback: *const TreeRayCastCallbackFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2DynamicTree_RayCast(@ptrCast(&tree), @bitCast(&input), maskBits, @ptrCast(callback), @ptrCast(context)));
     }
 
-    pub inline fn shapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u64, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) void {
-        native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context));
+    pub inline fn shapeCast(tree: DynamicTree, input: ShapeCastInput, maskBits: u64, callback: *const TreeShapeCastCallbackFn, context: ?*anyopaque) TreeStats {
+        return @bitCast(native.b2DynamicTree_ShapeCast(@ptrCast(&tree), @ptrCast(&input), maskBits, @ptrCast(callback), @ptrCast(context)));
     }
 
     pub inline fn validate(tree: DynamicTree) void {
@@ -2453,6 +2617,11 @@ pub const DynamicTree = extern struct {
     pub inline fn getAABB(tree: DynamicTree, proxyId: i32) AABB {
         return tree.nodes[proxyId].aabb;
     }
+};
+
+pub const TreeStats = extern struct {
+    nodeVisits: i32,
+    leafVisits: i32,
 };
 
 pub const AABB = extern struct {
@@ -2550,15 +2719,19 @@ pub inline fn unwindAngle(angle: f32) f32 {
 
 pub inline fn unwindLargeAngle(angle: f32) f32 {
     var realAngle = angle;
-    while(realAngle > std.math.pi) {
+    while (realAngle > std.math.pi) {
         realAngle -= 2.0 * std.path.pi;
     }
 
-    while(realAngle < -std.math.pi) {
+    while (realAngle < -std.math.pi) {
         realAngle += 2.0 * std.path.pi;
     }
 
     return realAngle;
+}
+
+pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDistanceResult {
+    return @bitCast(native.b2SegmentDistance(@bitCast(p1), @bitCast(q1), @bitCast(p2), @bitCast(q2)));
 }
 
 // These may seem redundant, but they make use of Box2D's determinism
@@ -2567,8 +2740,8 @@ pub inline fn atan2(y: f32, x: f32) f32 {
     return native.b2Atan2(y, x);
 }
 
-pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDistanceResult {
-    return @bitCast(native.b2SegmentDistance(@bitCast(p1), @bitCast(q1), @bitCast(p2), @bitCast(q2)));
+pub inline fn computeCosSin(angle: f32) CosSin {
+    return @bitCast(native.b2ComputeCosSin(angle));
 }
 
 // Collision functions
@@ -2629,7 +2802,7 @@ fn recursivelyRefAllDeclsExceptNative(T: type) void {
     // Isn't this the third or fourth time zig devs decided to change the capitalization of enum values?
     // TODO: probably fine to remove once 0.14 is stable
     const useOldEnumCapitalization = comptime @hasField(std.builtin.Type, "Struct");
-    if(useOldEnumCapitalization) {
+    if (useOldEnumCapitalization) {
         if (@typeInfo(T) == .Struct) {
             inline for (comptime std.meta.declarations(T)) |decl| {
                 // when in doubt, just put 'comptime' in front of literally everything.
@@ -2757,6 +2930,11 @@ test "abiCompat" {
     try std.testing.expect(structsAreABICompatible(SensorEndTouchEvent, native.b2SensorEndTouchEvent));
     try std.testing.expect(structsAreABICompatible(SensorBeginTouchEvent, native.b2SensorBeginTouchEvent));
     try std.testing.expect(structsAreABICompatible(BodyMoveEvent, native.b2BodyMoveEvent));
+    try std.testing.expect(structsAreABICompatible(TreeStats, native.b2TreeStats));
+    try std.testing.expect(structsAreABICompatible(ExplosionDef, native.b2ExplosionDef));
+    try std.testing.expect(structsAreABICompatible(NullJointDef, native.b2NullJointDef));
+    try std.testing.expect(structsAreABICompatible(CosSin, native.b2CosSin));
+
     // TODO: the function pointers
     // TODO: the function pointers in DebugDraw
     // TODO: the enums
@@ -2771,7 +2949,7 @@ fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
     // Also, isn't this the third or fourth time zig devs decided to change the capitalization of enum values?
     // TODO: probably fine to remove once Zig 0.14 is stable
     const useOldEnumCapitalization = comptime @hasField(std.builtin.Type, "Struct");
-    if(useOldEnumCapitalization) {
+    if (useOldEnumCapitalization) {
         if (aInfo != .Struct) return false;
         if (bInfo != .Struct) return false;
         // Make sure they have the same layout and that layout is ABI stable

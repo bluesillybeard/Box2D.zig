@@ -23,15 +23,12 @@ pub fn build(b: *std.Build) !void {
                     // determinism options
                     // TODO: does this actually work? I have no apple hardware to test on
                     // note: requires translating the determinism tests over (or adding the C files directly from box2D)
-                    break :blk &[_][]const u8 {
-                        "-ffp-contract=off"
-                    };
+                    break :blk &[_][]const u8{"-ffp-contract=off"};
                 },
                 else => {
                     break :blk &[_][]const u8{};
-                }
+                },
             }
-            
         };
         try link("./", &t.root_module, .{
             .target = target,
@@ -86,47 +83,36 @@ pub fn build(b: *std.Build) !void {
         // Link directly instead of using a module so we get the include dirs.
         const additionalCFlags: []const []const u8 = blk: {
             switch (target.result.os.tag) {
-                .macos, .ios, .tvos, .visionos, .watchos => {
-                    // determinism options
-                    // TODO: does this actually work? I have no apple hardware to test on
-                    // note: requires translating the determinism tests over (or adding the C files directly from box2D)
-                    break :blk &[_][]const u8 {
-                        "-ffp-contract=off"
-                    };
-                },
                 else => {
                     break :blk &[_][]const u8{};
-                }
+                },
             }
         };
         try link("./", &samplesExe.root_module, .{
             .target = target,
             .optimize = optimize,
-            .cflags = additionalCFlags
+            .cflags = additionalCFlags,
         });
         // the samples app uses GLAD. Instead of making a library, just add the sources.
-        samplesExe.addCSourceFile(.{.file = b.path("box2d/extern/glad/src/glad.c")});
+        samplesExe.addCSourceFile(.{ .file = b.path("box2d/extern/glad/src/glad.c") });
         samplesExe.addIncludePath(b.path("box2d/extern/glad/include"));
         // Note: the cmake for the samples app does a bit more work to find GLFW nicely.
         // We just do the equivalent of '-l glfw'
         samplesExe.root_module.linkSystemLibrary("glfw", .{});
         // Imgui, as well as the backends needed for use GLFW and OpenGL
         // Zig could use something like cmake's fetch content... For now, we just have Imgui as a git submodule
-        samplesExe.addCSourceFiles(.{
-            .files = &[_][]const u8 {
-                "imgui/imgui.cpp",
-                "imgui/imgui_draw.cpp",
-                "imgui/imgui_demo.cpp",
-                "imgui/imgui_tables.cpp",
-                "imgui/imgui_widgets.cpp",
-                "imgui/backends/imgui_impl_glfw.cpp",
-                "imgui/backends/imgui_impl_opengl3.cpp",
-            },
-            .flags = &[_][]const u8 {
-                "-std=c++17",
-                "-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS",
-            }
-        });
+        samplesExe.addCSourceFiles(.{ .files = &[_][]const u8{
+            "imgui/imgui.cpp",
+            "imgui/imgui_draw.cpp",
+            "imgui/imgui_demo.cpp",
+            "imgui/imgui_tables.cpp",
+            "imgui/imgui_widgets.cpp",
+            "imgui/backends/imgui_impl_glfw.cpp",
+            "imgui/backends/imgui_impl_opengl3.cpp",
+        }, .flags = &[_][]const u8{
+            "-std=c++17",
+            "-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS",
+        } });
         samplesExe.addIncludePath(b.path("imgui"));
         samplesExe.addIncludePath(b.path("imgui/backends"));
         // jsmn for json
@@ -156,9 +142,10 @@ pub fn build(b: *std.Build) !void {
                 "box2d/samples/settings.cpp",
                 "box2d/samples/shader.cpp",
             },
-            .flags = &[_][]const u8 {
+            .flags = &[_][]const u8{
+                //TODO: does this need the additional C flags from earlier?
                 "-std=c++17",
-            }, //TODO: does this need the additional C flags from earlier?
+            },
         });
         // enable determinism
 
@@ -167,7 +154,7 @@ pub fn build(b: *std.Build) !void {
         // Like with Imgui, it's a submodule...
         samplesExe.addCSourceFile(.{
             .file = b.path("enkiTS/src//TaskScheduler.cpp"),
-            .flags = &[_][]const u8{}
+            .flags = &[_][]const u8{},
         });
         samplesExe.addIncludePath(b.path("enkiTS/src"));
         // step to copy the resources for the samples app
@@ -217,7 +204,25 @@ fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOpt
     try args.append("-I");
     try args.append(modulePath ++ "/box2d/include");
     try args.append("-std=gnu17");
-    if(options.cflags) |cflags| {
+    const target = options.target.?.result;
+    // determinism options: https://box2d.org/posts/2024/08/determinism/
+    // TODO: does this actually work? Should probably set up CI the same way original Box2D has.
+    // note: requires translating the determinism tests over (or adding the C files directly from box2D)
+    // MINGW OR APPLE OR UNIX
+    // TODO: more comprehsneive way to test for unix systems
+    if (target.isMinGW() or target.isDarwin() or target.isGnu() or target.isBSD() or target.isAndroid() or target.isMusl()) {
+        try args.append("-ffp-contract=off");
+    }
+
+    // TODO: original build system checks for EMSCRIPTEN, is that strictly only emscripten or meant for wasm?
+    // Also, is this required? If not, might it be best to leave this for users to determine? Zig, as far as I can tell, enthusiastically enables SIMD.
+    // Other platforms have this too, but I've heard on certain versions of IOS it actually crashes without simd.
+    if (target.isWasm()) {
+        try args.append("-msimd128");
+        try args.append("-msse2");
+    }
+
+    if (options.cflags) |cflags| {
         try args.appendSlice(cflags);
     }
 
@@ -228,10 +233,8 @@ fn link(comptime modulePath: []const u8, c: *std.Build.Module, options: Box2dOpt
         .root = c.owner.path(modulePath ++ "/box2d/src/"),
         .files = &[_][]const u8{
             "aabb.c",
-            "allocate.c",
             "array.c",
             "bitset.c",
-            "block_array.c",
             "body.c",
             "broad_phase.c",
             "constraint_graph.c",
