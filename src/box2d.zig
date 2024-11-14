@@ -2734,6 +2734,10 @@ pub inline fn segmentDistance(p1: Vec2, q1: Vec2, p2: Vec2, q2: Vec2) SegmentDis
     return @bitCast(native.b2SegmentDistance(@bitCast(p1), @bitCast(q1), @bitCast(p2), @bitCast(q2)));
 }
 
+pub inline fn computeRotationBetweenVectors(v1: Vec2, v2: Vec2) Rot {
+    return @bitCast(native.b2ComputeRotationBetweenUnitVectors(@bitCast(v1), @bitCast(v2)));
+}
+
 // These may seem redundant, but they make use of Box2D's determinism
 
 pub inline fn atan2(y: f32, x: f32) f32 {

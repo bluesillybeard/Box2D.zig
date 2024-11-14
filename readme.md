@@ -63,5 +63,5 @@ When we update the Box2D version, we need to do this set of steps:
 - Pull from git and apply the noted changes to the binding.
 - I know this is tedious, but we probably won't need to update that often.
 - To get all changes: `git diff main...origin/main > diff.diff`, open in vscode
-    - search for `diff --git a/include/.*\.h` for API, ABI, and documentation changes
     - search for `diff --git a/.*\.txt` for build system changes
+    - search for `diff --git a/include/.*\.h` for API, ABI, and documentation changes
