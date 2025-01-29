@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
@@ -30,11 +31,21 @@ pub fn build(b: *std.Build) !void {
                 },
             }
         };
-        try link("./", &t.root_module, .{
-            .target = target,
-            .optimize = optimize,
-            .cflags = cflags,
-        });
+        // TODO: remove when 0.14 becomes stable
+        if(comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
+            try link("./", &t.root_module, .{
+                .target = target,
+                .optimize = optimize,
+                .cflags = cflags,
+            });
+        } else {
+            try link("./", t.root_module, .{
+                .target = target,
+                .optimize = optimize,
+                .cflags = cflags,
+            });
+        }
+        
         const testArtifact = b.addRunArtifact(t);
         const runTest = b.step("test", "Run tests");
         runTest.dependOn(&testArtifact.step);
@@ -88,11 +99,19 @@ pub fn build(b: *std.Build) !void {
                 },
             }
         };
-        try link("./", &samplesExe.root_module, .{
-            .target = target,
-            .optimize = optimize,
-            .cflags = additionalCFlags,
-        });
+        if(comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
+            try link("./", &samplesExe.root_module, .{
+                .target = target,
+                .optimize = optimize,
+                .cflags = additionalCFlags,
+            });
+        } else {
+            try link("./", samplesExe.root_module, .{
+                .target = target,
+                .optimize = optimize,
+                .cflags = additionalCFlags,
+            });
+        }
         // the samples app uses GLAD. Instead of making a library, just add the sources.
         samplesExe.addCSourceFile(.{ .file = b.path("box2d/extern/glad/src/glad.c") });
         samplesExe.addIncludePath(b.path("box2d/extern/glad/include"));
@@ -101,6 +120,7 @@ pub fn build(b: *std.Build) !void {
         samplesExe.root_module.linkSystemLibrary("glfw", .{});
         // Imgui, as well as the backends needed for use GLFW and OpenGL
         // Zig could use something like cmake's fetch content... For now, we just have Imgui as a git submodule
+        // TODO: does imgui have a zig build system integration yet?
         samplesExe.addCSourceFiles(.{ .files = &[_][]const u8{
             "imgui/imgui.cpp",
             "imgui/imgui_draw.cpp",
@@ -153,7 +173,7 @@ pub fn build(b: *std.Build) !void {
         // We also need enkiTS
         // Like with Imgui, it's a submodule...
         samplesExe.addCSourceFile(.{
-            .file = b.path("enkiTS/src//TaskScheduler.cpp"),
+            .file = b.path("enkiTS/src/TaskScheduler.cpp"),
             .flags = &[_][]const u8{},
         });
         samplesExe.addIncludePath(b.path("enkiTS/src"));
