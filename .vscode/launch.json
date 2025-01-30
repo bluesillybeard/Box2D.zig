@@ -10,8 +10,17 @@
             "name": "Debug samples",
             "program": "${workspaceFolder}/zig-out/bin/samples",
             "args": [],
-            "cwd": "${workspaceFolder}/box2c",
+            "cwd": "${workspaceFolder}/box2d",
             "preLaunchTask": "buildsamples"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug tests",
+            "program": "${workspaceFolder}/zig-out/bin/testexe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "buildtestexe"
         },
         {
             "type": "lldb",
@@ -19,7 +28,7 @@
             "name": "Debug samples without building",
             "program": "${workspaceFolder}/zig-out/bin/samples",
             "args": [],
-            "cwd": "${workspaceFolder}/box2c",
+            "cwd": "${workspaceFolder}/box2d",
         }
     ]
 }

@@ -11,14 +11,19 @@ pub const TreeQueryCallbackFn = fn (proxyId: i32, userData: i32, context: ?*anyo
 pub const TreeRayCastCallbackFn = fn (*const RayCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
 pub const TreeShapeCastCallbackFn = fn (*const ShapeCastInput, i32, i32, ?*anyopaque) callconv(.C) f32;
 pub const OverlapResultFn = fn (shape: ShapeId, context: ?*anyopaque) callconv(.C) bool;
-pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) *anyopaque;
-pub const FreeFn = fn (mem: *anyopaque) callconv(.C) void;
+pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) ?*anyopaque;
+pub const FreeFn = fn (mem: ?*anyopaque) callconv(.C) void;
 pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
 pub const TaskCallback = fn (i32, i32, u32, ?*anyopaque) callconv(.C) void;
 
-pub const defaultCategoryBits = native.b2_defaultCategoryBits;
-pub const defaultMaskBits = native.b2_defaultMaskBits;
-pub const maxPolygonVertices = native.b2_maxPolygonVertices;
+// TODO: translate these types?
+pub const EnqueueTaskCallback = native.b2EnqueueTaskCallback;
+pub const FinishTaskCallback = native.b2FinishTaskCallback;
+pub const CustomFilterFn = native.b2CustomFilterFcn;
+
+pub const defaultCategoryBits: u64 = 1;
+pub const defaultMaskBits: u64 = std.math.maxInt(u64);
+pub const maxPolygonVertices: usize = 8;
 
 // these have been translated
 
@@ -99,6 +104,11 @@ pub const Version = extern struct {
 };
 
 pub const Rot = extern struct {
+    pub const identity = Rot{
+        .c = 1,
+        .s = 0,
+    };
+
     pub inline fn fromRadians(angle: f32) Rot {
         return @bitCast(native.b2MakeRot(angle));
     }
@@ -148,7 +158,7 @@ pub const Rot = extern struct {
     }
 
     pub inline fn toRadians(q: Rot) f32 {
-        return atan2(q.s, q.c);
+        return native.b2Atan2(q.s, q.c);
     }
 
     pub inline fn getXAxis(q: Rot) Vec2 {
@@ -220,6 +230,11 @@ pub const Rot = extern struct {
 };
 
 pub const Transform = extern struct {
+    pub const identity = Transform{
+        .p = Vec2.zero,
+        .q = Rot.identity,
+    };
+
     pub inline fn transformPoint(t: Transform, p: Vec2) Vec2 {
         return Vec2{
             .x = ((t.q.c * p.x) - (t.q.s * p.y)) + t.p.x,
@@ -407,7 +422,7 @@ pub const Vec2 = extern struct {
         return Vec2{ .x = invLength * v.x, .y = invLength * v.y };
     }
 
-    pub inline fn getLengthAndNormalize(len: *f32, v: Vec2) Vec2 {
+    pub inline fn getLengthAndNormalize(v: Vec2, len: *f32) Vec2 {
         len.* = v.length();
         if (len.* < std.math.floatEps(f32)) {
             return Vec2{ .x = 0, .y = 0 };
@@ -415,6 +430,8 @@ pub const Vec2 = extern struct {
         const invLength = 1.0 / len.*;
         return Vec2{ .x = invLength * v.x, .y = invLength * v.y };
     }
+
+    pub const zero = Vec2{ .x = 0, .y = 0 };
 
     x: f32,
     y: f32,
@@ -426,9 +443,9 @@ pub const CosSin = extern struct {
 };
 
 pub const BodyType = enum(c_uint) {
-    static = 0,
-    kinematic = 1,
-    dynamic = 2,
+    static,
+    kinematic,
+    dynamic,
 };
 
 pub const ShapeType = enum(c_uint) {
@@ -450,8 +467,8 @@ pub const JointType = enum(c_uint) {
     wheel,
 };
 
-// TODO: I don't think using an actual enum here is particularily appropriate.
-pub const HexColor = enum(c_int) {
+pub const HexColor = u32;
+pub const HexColors = struct {
     pub const aliceBlue = 0xf0f8ff;
     pub const antiqueWhite = 0xfaebd7;
     pub const aquamarine = 0x7fffd4;
@@ -606,8 +623,6 @@ pub const HexColor = enum(c_int) {
     pub const box2DBlue = 0x30aebf;
     pub const box2DGreen = 0x8cc924;
     pub const box2DYellow = 0xffee8c;
-    // this is only an "enum" so we can have a type that behaves exactly like an int, but has declarations.
-    _,
 };
 
 // TODO: create a wrapper around DebugDraw so users of Box2D don't need to worry about the context type or calling convention
@@ -615,15 +630,15 @@ pub const DebugDraw = extern struct {
     pub inline fn default() DebugDraw {
         return @bitCast(native.b2DefaultDebugDraw());
     }
-    drawPolygon: *const fn ([*c]const Vec2, c_int, HexColor, ?*anyopaque) callconv(.C) void,
-    drawSolidPolygon: *const fn (Transform, [*c]const Vec2, c_int, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    drawCircle: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    drawSolidCircle: *const fn (Transform, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    drawSolidCapsule: *const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    drawSegment: *const fn (Vec2, Vec2, HexColor, ?*anyopaque) callconv(.C) void,
-    drawTransform: *const fn (Transform, ?*anyopaque) callconv(.C) void,
-    drawPoint: *const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
-    drawString: *const fn (Vec2, [*c]const u8, ?*anyopaque) callconv(.C) void,
+    drawPolygon: ?*const fn ([*c]const Vec2, c_int, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSolidPolygon: ?*const fn (Transform, [*c]const Vec2, c_int, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawCircle: ?*const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSolidCircle: ?*const fn (Transform, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSolidCapsule: ?*const fn (Vec2, Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawSegment: ?*const fn (Vec2, Vec2, HexColor, ?*anyopaque) callconv(.C) void,
+    drawTransform: ?*const fn (Transform, ?*anyopaque) callconv(.C) void,
+    drawPoint: ?*const fn (Vec2, f32, HexColor, ?*anyopaque) callconv(.C) void,
+    drawString: ?*const fn (Vec2, [*c]const u8, ?*anyopaque) callconv(.C) void,
     drawingBounds: AABB,
     useDrawingBounds: bool,
     drawShapes: bool,
@@ -891,8 +906,8 @@ pub const WorldDef = extern struct {
     enableContinuous: bool,
     workerCount: i32,
     // TODO: convert these callbacks manually & maybe make a wrapper?
-    enqueueTask: ?*const native.b2EnqueueTaskCallback,
-    finishTask: ?*const native.b2FinishTaskCallback,
+    enqueueTask: ?*EnqueueTaskCallback,
+    finishTask: ?*FinishTaskCallback,
     userTaskContext: ?*anyopaque,
     userData: ?*anyopaque,
     internalValue: i32,
@@ -905,6 +920,11 @@ pub const WorldDef = extern struct {
 // ids
 
 pub const WorldId = extern struct {
+    pub const nullId = WorldId{
+        .index1 = 0,
+        .revision = 0,
+    };
+
     pub inline fn create(def: WorldDef) WorldId {
         return @bitCast(native.b2CreateWorld(@ptrCast(&def)));
     }
@@ -961,8 +981,8 @@ pub const WorldId = extern struct {
         return @bitCast(native.b2World_CastRay(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter), @ptrCast(castFn), @ptrCast(context)));
     }
 
-    pub inline fn rayCastClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
-        return @bitCast(native.b2World_RayCastClosest(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter)));
+    pub inline fn castRayClosest(worldId: WorldId, origin: Vec2, translation: Vec2, filter: QueryFilter) RayResult {
+        return @bitCast(native.b2World_CastRayClosest(@bitCast(worldId), @bitCast(origin), @bitCast(translation), @bitCast(filter)));
     }
 
     pub inline fn castCircle(worldId: WorldId, circle: Circle, originTransform: Transform, translation: Vec2, filter: QueryFilter, castFn: *CastResultFn, context: ?*anyopaque) TreeStats {
@@ -1073,6 +1093,18 @@ pub const WorldId = extern struct {
         native.b2World_RebuildStaticTree(@bitCast(worldId));
     }
 
+    pub inline fn setCustomFilterCallback(worldId: WorldId, fcn: ?*const CustomFilterFn, context: ?*anyopaque) void {
+        native.b2World_SetCustomFilterCallback(worldId, @ptrCast(fcn), context);
+    }
+
+    pub inline fn eql(worldId: WorldId, other: WorldId) bool {
+        return worldId.index1 == other.index1 and worldId.revision == other.revision;
+    }
+
+    pub inline fn isNull(this: WorldId) bool {
+        return this.index1 == 0;
+    }
+
     index1: u16,
     revision: u16,
 };
@@ -1081,6 +1113,12 @@ pub const JointId = extern struct {
     index1: i32,
     world0: u16,
     revision: u16,
+
+    pub const nullId = JointId{
+        .index1 = 0,
+        .world0 = 0,
+        .revision = 0,
+    };
 
     pub inline fn createNullJoint(worldId: WorldId, def: NullJointDef) JointId {
         return @bitCast(native.b2CreateNullJoint(@bitCast(worldId), @ptrCast(&def)));
@@ -1221,7 +1259,7 @@ pub const JointId = extern struct {
     }
 
     pub inline fn distanceJointGetLength(jointId: JointId) f32 {
-        return distanceJointGetLength(@bitCast(jointId));
+        return native.b2DistanceJoint_GetLength(@bitCast(jointId));
     }
 
     pub inline fn distanceJointEnableSpring(jointId: JointId, enableSpring: bool) void {
@@ -1607,12 +1645,26 @@ pub const JointId = extern struct {
     pub inline fn load(x: u64) JointId {
         return @bitCast(native.b2LoadJointId(x));
     }
+
+    pub inline fn eql(this: JointId, other: JointId) bool {
+        return this.index1 == other.index1 and this.world0 == other.world0 and this.revision == other.revision;
+    }
+
+    pub inline fn isNull(this: JointId) bool {
+        return this.index1 == 0;
+    }
 };
 
 pub const ChainId = extern struct {
     index: i32,
     world0: u16,
     revision: u16,
+
+    pub const nullId = ChainId{
+        .index = 0,
+        .world0 = 0,
+        .revision = 0,
+    };
 
     pub inline fn create(bodyId: BodyId, def: ChainDef) ChainId {
         return @bitCast(native.b2CreateChain(@bitCast(bodyId), @ptrCast(&def)));
@@ -1654,12 +1706,26 @@ pub const ChainId = extern struct {
     pub inline fn load(x: u64) ChainId {
         return @bitCast(native.b2LoadChainId(x));
     }
+
+    pub inline fn eql(this: ChainId, other: ChainId) bool {
+        return this.index1 == other.index1 and this.world0 == other.world0 and this.revision == other.revision;
+    }
+
+    pub inline fn isNull(this: ChainId) bool {
+        return this.index1 == 0;
+    }
 };
 
 pub const ShapeId = extern struct {
     index1: i32,
     world0: u16,
     revision: u16,
+
+    pub const nullId = ShapeId{
+        .index1 = 0,
+        .world0 = 0,
+        .revision = 0,
+    };
 
     pub inline fn createCircleShape(bodyId: BodyId, def: ShapeDef, circle: Circle) ShapeId {
         return @bitCast(native.b2CreateCircleShape(@bitCast(bodyId), @ptrCast(&def), @ptrCast(&circle)));
@@ -1767,7 +1833,7 @@ pub const ShapeId = extern struct {
     }
 
     pub inline fn enableHitEvents(shapeId: ShapeId, flag: bool) void {
-        native.b2Shape_EnableContactEvents(@bitCast(shapeId), flag);
+        native.b2Shape_EnableHitEvents(@bitCast(shapeId), flag);
     }
 
     pub inline fn areHitEventsEnabled(shapeId: ShapeId) bool {
@@ -1845,9 +1911,23 @@ pub const ShapeId = extern struct {
     pub inline fn load(x: u32) ShapeId {
         return @bitCast(native.b2LoadShapeId(x));
     }
+
+    pub inline fn eql(this: ShapeId, other: ShapeId) bool {
+        return this.index1 == other.index1 and this.world0 == other.world0 and this.revision == other.revision;
+    }
+
+    pub inline fn isNull(this: ShapeId) bool {
+        return this.index1 == 0;
+    }
 };
 
 pub const BodyId = extern struct {
+    pub const nullId = BodyId{
+        .index1 = 0,
+        .world0 = 0,
+        .revision = 0,
+    };
+
     pub inline fn create(worldId: WorldId, def: BodyDef) BodyId {
         return @bitCast(native.b2CreateBody(@bitCast(worldId), @ptrCast(&def)));
     }
@@ -1886,10 +1966,6 @@ pub const BodyId = extern struct {
 
     pub inline fn getRotation(bodyId: BodyId) Rot {
         return @bitCast(native.b2Body_GetRotation(@bitCast(bodyId)));
-    }
-
-    pub inline fn getAngle(bodyId: BodyId) f32 {
-        return native.b2Body_GetAngle(@bitCast(bodyId));
     }
 
     pub inline fn getTransform(bodyId: BodyId) Transform {
@@ -1961,7 +2037,7 @@ pub const BodyId = extern struct {
     }
 
     pub inline fn getRotationalInertia(bodyId: BodyId) f32 {
-        return native.b2Body_GetRotationalIntertia(@bitCast(bodyId));
+        return native.b2Body_GetRotationalInertia(@bitCast(bodyId));
     }
 
     pub inline fn getLocalCenterOfMass(bodyId: BodyId) Vec2 {
@@ -2100,6 +2176,14 @@ pub const BodyId = extern struct {
         return @bitCast(native.b2LoadBodyId(x));
     }
 
+    pub inline fn eql(this: BodyId, other: BodyId) bool {
+        return this.index1 == other.index1 and this.world0 == other.world0 and this.revision == other.revision;
+    }
+
+    pub inline fn isNull(this: BodyId) bool {
+        return this.index1 == 0;
+    }
+
     index1: i32,
     world0: u16,
     revision: u16,
@@ -2218,12 +2302,16 @@ pub const DistanceCache = extern struct {
     indexA: [3]u8,
     indexB: [3]u8,
 
-    // TODO: does this really belong here?
+    pub const empty = DistanceCache{
+        .count = 0,
+        .indexA = [3]u8{ 0, 0, 0 },
+        .indexB = [3]u8{ 0, 0, 0 },
+    };
+
     pub inline fn shapeDistanceDebug(cache: *DistanceCache, input: DistanceInput, simplexes: ?*Simplex, simplexCapacity: usize) DistanceOutput {
         return @bitCast(native.b2ShapeDistance(@ptrCast(cache), @ptrCast(&input), simplexes, @intCast(simplexCapacity)));
     }
 
-    // TODO: does this really belong here?
     // This non-debug version is for normal people who don't need the one with the GJK debug output
     pub inline fn shapeDistance(cache: *DistanceCache, input: DistanceInput) DistanceOutput {
         return @bitCast(native.b2ShapeDistance(@ptrCast(cache), @ptrCast(&input), null, 0));
@@ -2254,8 +2342,7 @@ pub const ShapeCastPairInput = extern struct {
     translationB: Vec2,
     maxFraction: f32,
 
-    // TODO: does this really belong here?
-    pub inline fn cast(input: ShapeCastPairInput) CastOutput {
+    pub inline fn shapeCast(input: ShapeCastPairInput) CastOutput {
         return @bitCast(native.b2ShapeCast(@ptrCast(&input)));
     }
 };
@@ -2288,6 +2375,7 @@ pub const RayCastInput = extern struct {
     maxFraction: f32,
 
     // TODO: should these actually be in the individual shape structs?
+    // Why not both, so you can do rayCastInput.circle(circle), or circle.rayCast(rayCastInput)?
     pub inline fn circle(input: RayCastInput, shape: Circle) CastOutput {
         return @bitCast(native.b2RayCastCircle(@ptrCast(&input), @ptrCast(&shape)));
     }
@@ -2317,6 +2405,7 @@ pub const ShapeCastInput = extern struct {
     maxFraction: f32,
 
     // TODO: should these actually be in the individual shape structs?
+    // Why not both, so you can do shapeCastInput.circle(circle), or circle.shapeCast(shapeCastInput)?
     pub inline fn circle(input: ShapeCastInput, shape: Circle) CastOutput {
         return @bitCast(native.b2ShapeCastCircle(@ptrCast(&input), @ptrCast(&shape)));
     }
@@ -2409,7 +2498,7 @@ pub const TOIOutput = extern struct {
     t: f32,
 };
 
-pub const TOIState = enum(c_int) {
+pub const TOIState = enum(c_uint) {
     unknown,
     failed,
     overlapped,
@@ -2439,7 +2528,6 @@ pub const TreeNode = extern struct {
     flags: u16,
 };
 
-// TODO: why are SimplexVertex and Simplex public?
 pub const SimplexVertex = extern struct {
     wA: Vec2,
     wB: Vec2,
@@ -2485,7 +2573,7 @@ pub const RayResult = extern struct {
     hit: bool,
 };
 
-pub const MixingRule = enum(c_int) {
+pub const MixingRule = enum(c_uint) {
     average,
     geometricMean,
     multiply,
@@ -2547,10 +2635,6 @@ pub const DynamicTree = extern struct {
 
     pub inline fn destroyProxy(tree: *DynamicTree, proxyId: i32) void {
         native.b2DynamicTree_DestroyProxy(@ptrCast(tree), proxyId);
-    }
-
-    pub inline fn clone(outTree: *DynamicTree, inTree: *const DynamicTree) void {
-        native.b2DynamicTree_Clone(@ptrCast(outTree), @ptrCast(inTree));
     }
 
     pub inline fn moveProxy(tree: *DynamicTree, proxyId: i32, aabb: AABB) void {
@@ -2695,7 +2779,7 @@ pub inline fn getVersion() Version {
     return @bitCast(native.b2GetVersion());
 }
 
-// TODO: replace to take Zig allocator.
+// TODO: add functionality to take Zig allocator.
 // The free function does not have a length argument while Zig allocators require that.
 // probably just add a usize worth of extra bytes per allocation to store the length.
 pub inline fn setAllocator(alloc: *AllocFn, free: *FreeFn) void {
@@ -2748,6 +2832,10 @@ pub inline fn computeCosSin(angle: f32) CosSin {
     return @bitCast(native.b2ComputeCosSin(angle));
 }
 
+pub inline fn floatIsValid(a: f32) bool {
+    return native.b2IsValid(a);
+}
+
 // Collision functions
 
 // TODO: For the collision functions, it will require re-duplicating since the user should be able to to do circle.collideCapsule(capsule) as well as capsule.collideCircle(circle)
@@ -2798,192 +2886,4 @@ pub inline fn collideChainSegmentAndCapsule(chainSegmentA: ChainSegment, xfA: Tr
 
 pub inline fn collideChainSegmentAndPolygon(chainSegmentA: ChainSegment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
     return @bitCast(native.b2CollideChainSegmentAndPolygon(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-// This is required since native is a raw translate-c, and translate-c creates compile errors when certain declarations are referenced.
-fn recursivelyRefAllDeclsExceptNative(T: type) void {
-    @setEvalBranchQuota(10000);
-    // Isn't this the third or fourth time zig devs decided to change the capitalization of enum values?
-    // TODO: probably fine to remove once 0.14 is stable
-    const useOldEnumCapitalization = comptime @hasField(std.builtin.Type, "Struct");
-    if (useOldEnumCapitalization) {
-        if (@typeInfo(T) == .Struct) {
-            inline for (comptime std.meta.declarations(T)) |decl| {
-                // when in doubt, just put 'comptime' in front of literally everything.
-                // Because the Zig compiler will annoyingly delay anything it can to runtime, for some reason.
-                if (comptime !std.mem.eql(u8, decl.name, "native")) {
-                    const d = @field(T, decl.name);
-                    _ = &d;
-                    if (@TypeOf(d) == type) recursivelyRefAllDeclsExceptNative(d);
-                }
-            }
-        }
-    } else {
-        if (@typeInfo(T) == .@"struct") {
-            inline for (comptime std.meta.declarations(T)) |decl| {
-                // when in doubt, just put 'comptime' in front of literally everything.
-                // Because the Zig compiler will annoyingly delay anything it can to runtime, for some reason.
-                if (comptime !std.mem.eql(u8, decl.name, "native")) {
-                    const d = @field(T, decl.name);
-                    _ = &d;
-                    if (@TypeOf(d) == type) recursivelyRefAllDeclsExceptNative(d);
-                }
-            }
-        }
-    }
-}
-
-// The only point of this test is to make sure Box2D is linked correctly.
-// TODO: fully translate all of Box2D's tests
-test "MathTest" {
-    const zero = native.b2Vec2_zero;
-    const one = native.b2Vec2{ .x = 1.0, .y = 1.0 };
-    const two = native.b2Vec2{ .x = 2.0, .y = 2.0 };
-
-    var v = native.b2Add(one, two);
-    try std.testing.expect(v.x == 3.0 and v.y == 3.0);
-
-    v = native.b2Sub(zero, two);
-    try std.testing.expect(v.x == -2.0 and v.y == -2.0);
-
-    v = native.b2Add(two, two);
-    try std.testing.expect(v.x != 5.0 and v.y != 5.0);
-
-    const xf1 = native.b2Transform{ .p = .{ .x = -2.0, .y = 3.0 }, .q = native.b2MakeRot(1.0) };
-    const xf2 = native.b2Transform{ .p = .{ .x = 1.0, .y = 0.0 }, .q = native.b2MakeRot(-2.0) };
-
-    const xf = native.b2MulTransforms(xf2, xf1);
-
-    v = native.b2TransformPoint(xf2, native.b2TransformPoint(xf1, two));
-
-    const u = native.b2TransformPoint(xf, two);
-
-    try std.testing.expectApproxEqAbs(0, u.y - v.y, 10.0 * std.math.floatEps(f32));
-
-    v = native.b2TransformPoint(xf1, two);
-    v = native.b2InvTransformPoint(xf1, v);
-
-    try std.testing.expectApproxEqAbs(0, v.x - two.x, 8.0 * std.math.floatEps(f32));
-    try std.testing.expectApproxEqAbs(0, v.y - two.y, 8.0 * std.math.floatEps(f32));
-}
-
-// This test invokes ABI compatibility checks, so ABI incompatibilities are caught before they cause memory errors.
-test "abiCompat" {
-    recursivelyRefAllDeclsExceptNative(@This());
-    // Things that need to be verified here: structs, function pointers, enums
-    // Everything else will be automatically verified by the compiler
-    // Here are the structs
-    try std.testing.expect(structsAreABICompatible(WorldId, native.b2WorldId));
-    try std.testing.expect(structsAreABICompatible(WorldDef, native.b2WorldDef));
-    try std.testing.expect(structsAreABICompatible(DebugDraw, native.b2DebugDraw));
-    try std.testing.expect(structsAreABICompatible(BodyEvents, native.b2BodyEvents));
-    try std.testing.expect(structsAreABICompatible(SensorEvents, native.b2SensorEvents));
-    try std.testing.expect(structsAreABICompatible(ContactEvents, native.b2ContactEvents));
-    try std.testing.expect(structsAreABICompatible(AABB, native.b2AABB));
-    try std.testing.expect(structsAreABICompatible(QueryFilter, native.b2QueryFilter));
-    try std.testing.expect(structsAreABICompatible(ShapeId, native.b2ShapeId));
-    try std.testing.expect(structsAreABICompatible(Circle, native.b2Circle));
-    try std.testing.expect(structsAreABICompatible(Transform, native.b2Transform));
-    try std.testing.expect(structsAreABICompatible(Capsule, native.b2Capsule));
-    try std.testing.expect(structsAreABICompatible(Polygon, native.b2Polygon));
-    try std.testing.expect(structsAreABICompatible(Vec2, native.b2Vec2));
-    try std.testing.expect(structsAreABICompatible(RayResult, native.b2RayResult));
-    try std.testing.expect(structsAreABICompatible(Manifold, native.b2Manifold));
-    try std.testing.expect(structsAreABICompatible(Profile, native.b2Profile));
-    try std.testing.expect(structsAreABICompatible(Counters, native.b2Counters));
-    try std.testing.expect(structsAreABICompatible(BodyDef, native.b2BodyDef));
-    try std.testing.expect(structsAreABICompatible(BodyId, native.b2BodyId));
-    try std.testing.expect(structsAreABICompatible(Rot, native.b2Rot));
-    try std.testing.expect(structsAreABICompatible(MassData, native.b2MassData));
-    try std.testing.expect(structsAreABICompatible(JointId, native.b2JointId));
-    try std.testing.expect(structsAreABICompatible(ContactData, native.b2ContactData));
-    try std.testing.expect(structsAreABICompatible(ShapeDef, native.b2ShapeDef));
-    try std.testing.expect(structsAreABICompatible(Segment, native.b2Segment));
-    try std.testing.expect(structsAreABICompatible(Filter, native.b2Filter));
-    try std.testing.expect(structsAreABICompatible(CastOutput, native.b2CastOutput));
-    try std.testing.expect(structsAreABICompatible(ChainSegment, native.b2ChainSegment));
-    try std.testing.expect(structsAreABICompatible(ChainId, native.b2ChainId));
-    try std.testing.expect(structsAreABICompatible(ChainDef, native.b2ChainDef));
-    try std.testing.expect(structsAreABICompatible(DistanceJointDef, native.b2DistanceJointDef));
-    try std.testing.expect(structsAreABICompatible(MotorJointDef, native.b2MotorJointDef));
-    try std.testing.expect(structsAreABICompatible(MouseJointDef, native.b2MouseJointDef));
-    try std.testing.expect(structsAreABICompatible(PrismaticJointDef, native.b2PrismaticJointDef));
-    try std.testing.expect(structsAreABICompatible(RevoluteJointDef, native.b2RevoluteJointDef));
-    try std.testing.expect(structsAreABICompatible(WeldJointDef, native.b2WeldJointDef));
-    try std.testing.expect(structsAreABICompatible(WheelJointDef, native.b2WheelJointDef));
-    try std.testing.expect(structsAreABICompatible(SegmentDistanceResult, native.b2SegmentDistanceResult));
-    try std.testing.expect(structsAreABICompatible(DistanceCache, native.b2DistanceCache));
-    try std.testing.expect(structsAreABICompatible(DistanceInput, native.b2DistanceInput));
-    try std.testing.expect(structsAreABICompatible(DistanceOutput, native.b2DistanceOutput));
-    try std.testing.expect(structsAreABICompatible(ShapeCastPairInput, native.b2ShapeCastPairInput));
-    try std.testing.expect(structsAreABICompatible(DistanceProxy, native.b2DistanceProxy));
-    try std.testing.expect(structsAreABICompatible(Sweep, native.b2Sweep));
-    try std.testing.expect(structsAreABICompatible(DynamicTree, native.b2DynamicTree));
-    try std.testing.expect(structsAreABICompatible(RayCastInput, native.b2RayCastInput));
-    try std.testing.expect(structsAreABICompatible(ShapeCastInput, native.b2ShapeCastInput));
-    try std.testing.expect(structsAreABICompatible(Hull, native.b2Hull));
-    try std.testing.expect(structsAreABICompatible(TOIInput, native.b2TOIInput));
-    try std.testing.expect(structsAreABICompatible(TOIOutput, native.b2TOIOutput));
-    try std.testing.expect(structsAreABICompatible(SimplexVertex, native.b2SimplexVertex));
-    try std.testing.expect(structsAreABICompatible(Simplex, native.b2Simplex));
-    try std.testing.expect(structsAreABICompatible(ContactBeginTouchEvent, native.b2ContactBeginTouchEvent));
-    try std.testing.expect(structsAreABICompatible(ContactEndTouchEvent, native.b2ContactEndTouchEvent));
-    try std.testing.expect(structsAreABICompatible(ContactHitEvent, native.b2ContactHitEvent));
-    try std.testing.expect(structsAreABICompatible(TreeNode, native.b2TreeNode));
-    try std.testing.expect(structsAreABICompatible(ManifoldPoint, native.b2ManifoldPoint));
-    try std.testing.expect(structsAreABICompatible(SensorEndTouchEvent, native.b2SensorEndTouchEvent));
-    try std.testing.expect(structsAreABICompatible(SensorBeginTouchEvent, native.b2SensorBeginTouchEvent));
-    try std.testing.expect(structsAreABICompatible(BodyMoveEvent, native.b2BodyMoveEvent));
-    try std.testing.expect(structsAreABICompatible(TreeStats, native.b2TreeStats));
-    try std.testing.expect(structsAreABICompatible(ExplosionDef, native.b2ExplosionDef));
-    try std.testing.expect(structsAreABICompatible(NullJointDef, native.b2NullJointDef));
-    try std.testing.expect(structsAreABICompatible(CosSin, native.b2CosSin));
-
-    // TODO: the function pointers
-    // TODO: the function pointers in DebugDraw
-    // TODO: the enums
-    // TODO: check for added types
-    // TODO: check for added functions. Can be done by scanning recursively for which box2D functions have alternatives, and erroring if there are functions without alternatives
-}
-
-fn structsAreABICompatible(comptime A: type, comptime B: type) bool {
-    const aInfo = @typeInfo(A);
-    const bInfo = @typeInfo(B);
-    // Lol who cares about things that aren't structs
-    // Also, isn't this the third or fourth time zig devs decided to change the capitalization of enum values?
-    // TODO: probably fine to remove once Zig 0.14 is stable
-    const useOldEnumCapitalization = comptime @hasField(std.builtin.Type, "Struct");
-    if (useOldEnumCapitalization) {
-        if (aInfo != .Struct) return false;
-        if (bInfo != .Struct) return false;
-        // Make sure they have the same layout and that layout is ABI stable
-        if (aInfo.Struct.layout == .auto) return false;
-        if (aInfo.Struct.layout != bInfo.Struct.layout) return false;
-
-        if (aInfo.Struct.fields.len != bInfo.Struct.fields.len) return false;
-        inline for (aInfo.Struct.fields, 0..) |aField, i| {
-            // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
-            const bField = bInfo.Struct.fields[i];
-            // this *could* do a recursive ABI check on the fields.
-            // However, that would be a lot of work, so just check that the sizes match and call it a day
-            if (@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
-        }
-    } else {
-        if (aInfo != .@"struct") return false;
-        if (bInfo != .@"struct") return false;
-        // Make sure they have the same layout and that layout is ABI stable
-        if (aInfo.@"struct".layout == .auto) return false;
-        if (aInfo.@"struct".layout != bInfo.@"struct".layout) return false;
-
-        if (aInfo.@"struct".fields.len != bInfo.@"struct".fields.len) return false;
-        inline for (aInfo.@"struct".fields, 0..) |aField, i| {
-            // Assume their indices match. I'm 99% certain the compiler has reliable order on extern/packed structs, however I have not dug into it.
-            const bField = bInfo.@"struct".fields[i];
-            // this *could* do a recursive ABI check on the fields.
-            // However, that would be a lot of work, so just check that the sizes match and call it a day
-            if (@sizeOf(aField.type) != @sizeOf(bField.type)) return false;
-        }
-    }
-    // None of the checks failed, so assume they are compatible at this point
-    return true;
 }

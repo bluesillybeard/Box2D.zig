@@ -24,7 +24,7 @@ const box2dModule = box2d.addModule(b, "Box2D.zig", .{});
 exe.root_module.addImport("box2d", box2dModule);
 ```
 
-This also probably works using Zigs package `build.zig.zon` thing, however I have not tested it yet as I don't use that system for any of my own projects.
+This also probably works using Zigs package `build.zig.zon` thing, but that has not been tested yet.
 
 ## Other notes
 
@@ -34,6 +34,7 @@ The binding is under heavy work, but it's nearly there. All that's missing are:
     - userData type validation will be done at runtime, since it's just an opaque pointer that gets eaten and regurgitated
 - copy documentation over (with minor modifications to fit the binding better)
 - there are a number of TODOs
+- The final goal is that the C headers are only used to validate API/ABI compatibility
 
 I suggest using the native option `@import("box2d").native` for now, however the binding is close enough to ready that it's in a mostly usable state if you are willing to do bits of refactoring as it matures.
 

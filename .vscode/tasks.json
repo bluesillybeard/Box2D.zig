@@ -5,6 +5,11 @@
             "label": "buildsamples",
             "type": "shell",
             "command": "zig build samples"
+        },
+        {
+            "label": "buildtestexe",
+            "type": "shell",
+            "command": "zig build testexe"
         }
     ]
 }

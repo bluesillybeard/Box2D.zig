@@ -13,7 +13,7 @@ pub fn build(b: *std.Build) !void {
     // test runner
     {
         const t = b.addTest(.{
-            .root_source_file = b.path("src/box2d.zig"),
+            .root_source_file = b.path("src/test.zig"),
             .target = target,
             .optimize = optimize,
             .link_libc = true,
@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) !void {
             }
         };
         // TODO: remove when 0.14 becomes stable
-        if(comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
+        if (comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
             try link("./", &t.root_module, .{
                 .target = target,
                 .optimize = optimize,
@@ -45,7 +45,7 @@ pub fn build(b: *std.Build) !void {
                 .cflags = cflags,
             });
         }
-        
+
         const testArtifact = b.addRunArtifact(t);
         const runTest = b.step("test", "Run tests");
         runTest.dependOn(&testArtifact.step);
@@ -99,7 +99,7 @@ pub fn build(b: *std.Build) !void {
                 },
             }
         };
-        if(comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
+        if (comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
             try link("./", &samplesExe.root_module, .{
                 .target = target,
                 .optimize = optimize,
@@ -189,6 +189,48 @@ pub fn build(b: *std.Build) !void {
         const samplesExeStep = b.step("samples", "Build the samples app");
         samplesExeStep.dependOn(&copyFilesStep.step);
         samplesExeStep.dependOn(&samplesExeArtifact.step);
+    }
+
+    // build test exe
+    {
+        const t = b.addExecutable(.{
+            .root_source_file = b.path("src/test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+            .name = "testexe",
+        });
+        const cflags: []const []const u8 = blk: {
+            switch (target.result.os.tag) {
+                .macos, .ios, .tvos, .visionos, .watchos => {
+                    // determinism options
+                    // TODO: does this actually work? I have no apple hardware to test on
+                    // note: requires translating the determinism tests over (or adding the C files directly from box2D)
+                    break :blk &[_][]const u8{"-ffp-contract=off"};
+                },
+                else => {
+                    break :blk &[_][]const u8{};
+                },
+            }
+        };
+        // TODO: remove when 0.14 becomes stable
+        if (comptime std.mem.eql(u8, builtin.zig_version_string, "0.13.0")) {
+            try link("./", &t.root_module, .{
+                .target = target,
+                .optimize = optimize,
+                .cflags = cflags,
+            });
+        } else {
+            try link("./", t.root_module, .{
+                .target = target,
+                .optimize = optimize,
+                .cflags = cflags,
+            });
+        }
+
+        const testArtifact = b.addInstallArtifact(t, .{});
+        const runTest = b.step("testexe", "Built tests as an exe that can be debugged in a regular debugger");
+        runTest.dependOn(&testArtifact.step);
     }
 }
 
