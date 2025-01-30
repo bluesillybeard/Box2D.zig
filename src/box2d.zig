@@ -14,12 +14,10 @@ pub const OverlapResultFn = fn (shape: ShapeId, context: ?*anyopaque) callconv(.
 pub const AllocFn = fn (size: c_uint, alignment: c_int) callconv(.C) ?*anyopaque;
 pub const FreeFn = fn (mem: ?*anyopaque) callconv(.C) void;
 pub const AssertFn = fn (condition: [*:0]const u8, fileName: [*:0]const u8, lineNumber: c_int) callconv(.C) c_int;
-pub const TaskCallback = fn (i32, i32, u32, ?*anyopaque) callconv(.C) void;
-
-// TODO: translate these types?
-pub const EnqueueTaskCallback = native.b2EnqueueTaskCallback;
-pub const FinishTaskCallback = native.b2FinishTaskCallback;
-pub const CustomFilterFn = native.b2CustomFilterFcn;
+pub const TaskCallback = fn (startIndex: i32, endIndex: i32, workerIndex: u32, taskContext: ?*anyopaque) callconv(.C) void;
+pub const EnqueueTaskCallback = fn (task: ?*TaskCallback, itemCount: i32, minRange: i32, taskContext: ?*anyopaque, userContext: ?*anyopaque) callconv(.C) *?anyopaque;
+pub const FinishTaskCallback = fn (userTask: ?*anyopaque, userContext: ?*anyopaque) callconv(.C) void;
+pub const CustomFilterFn = fn (shapeIdA: ShapeId, shapeIdB: ShapeId, context: ?*anyopaque) callconv(.C) bool;
 
 pub const defaultCategoryBits: u64 = 1;
 pub const defaultMaskBits: u64 = std.math.maxInt(u64);
