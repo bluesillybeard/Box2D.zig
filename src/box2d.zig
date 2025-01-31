@@ -60,6 +60,18 @@ pub const Segment = extern struct {
     pub inline fn computeAABB(shape: Segment, transform: Transform) AABB {
         return @bitCast(native.b2ComputeSegmentAABB(@ptrCast(&shape), @bitCast(transform)));
     }
+
+    pub inline fn collideCircle(segmentA: *const Segment, xfA: Transform, circleB: *const Circle, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideSegmentAndCircle(@ptrCast(segmentA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideCapsule(segmentA: *const Segment, xfA: Transform, capsuleB: *const Capsule, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideSegmentAndCapsule(@ptrCast(segmentA), @bitCast(xfA), @ptrCast(capsuleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collidePolygon(segmentA: *const Segment, xfA: Transform, polygonB: *const Polygon, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideSegmentAndPolygon(@ptrCast(segmentA), @bitCast(xfA), @ptrCast(polygonB), @bitCast(xfB)));
+    }
 };
 
 pub const ChainSegment = extern struct {
@@ -67,6 +79,18 @@ pub const ChainSegment = extern struct {
     segment: Segment,
     ghost2: Vec2,
     chainId: i32,
+
+    pub inline fn collideCircle(chainSegmentA: *const ChainSegment, xfA: Transform, circleB: *const Circle, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideChainSegmentAndCircle(@ptrCast(chainSegmentA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideCapsule(chainSegmentA: *const ChainSegment, xfA: Transform, capsuleB: *const Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
+        return @bitCast(native.b2CollideChainSegmentAndCapsule(@ptrCast(chainSegmentA), @bitCast(xfA), @ptrCast(capsuleB), @bitCast(xfB), @ptrCast(cache)));
+    }
+
+    pub inline fn collidePolygon(chainSegmentA: *const ChainSegment, xfA: Transform, polygonB: *const Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
+        return @bitCast(native.b2CollideChainSegmentAndPolygon(@ptrCast(chainSegmentA), @bitCast(xfA), @ptrCast(polygonB), @bitCast(xfB), @ptrCast(cache)));
+    }
 };
 
 /// Profiling data. Times are in milliseconds.
@@ -2230,6 +2254,22 @@ pub const Capsule = extern struct {
     pub inline fn computeMass(shape: Capsule, density: f32) MassData {
         return @bitCast(native.b2ComputeCapsuleMass(@ptrCast(&shape), density));
     }
+
+    pub inline fn collideCircle(capsuleA: *const Capsule, xfA: Transform, circleB: *const Circle, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideCapsuleAndCircle(@ptrCast(capsuleA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideCapsule(capsuleA: *const Capsule, xfA: Transform, capsuleB: *const Capsule, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideCapsules(@ptrCast(capsuleA), @bitCast(xfA), @ptrCast(capsuleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideSegment(capsuleB: *const Capsule, xfB: Transform, segmentA: *const Segment, xfA: Transform) Manifold {
+        return @bitCast(native.b2CollideSegmentAndCapsule(@ptrCast(segmentA), @bitCast(xfA), @ptrCast(capsuleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collidePolygon(capsuleB: *const Capsule, xfB: Transform, polygonA: *const Polygon, xfA: Transform) Manifold {
+        return @bitCast(native.b2CollidePolygonAndCapsule(@ptrCast(polygonA), @bitCast(xfA), @ptrCast(capsuleB), @bitCast(xfB)));
+    }
 };
 
 pub const Polygon = extern struct {
@@ -2274,6 +2314,22 @@ pub const Polygon = extern struct {
 
     pub inline fn makeOffsetRoundedBox(hx: f32, hy: f32, center: Vec2, rotation: Rot, radius: f32) Polygon {
         return @bitCast(native.b2MakeOffsetRoundedBox(hx, hy, @bitCast(center), @bitCast(rotation), radius));
+    }
+
+    pub inline fn collideCircle(polygonA: *const Polygon, xfA: Transform, circleB: *const Circle, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollidePolygonAndCircle(@ptrCast(polygonA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideCapsule(polygonA: *const Polygon, xfA: Transform, capsuleB: *const Capsule, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollidePolygonAndCapsule(@ptrCast(polygonA), @bitCast(xfA), @ptrCast(capsuleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collidePolygon(polyA: *const Polygon, xfA: Transform, polyB: *const Polygon, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollidePolygons(@ptrCast(polyA), @bitCast(xfA), @ptrCast(polyB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideSegment(polygonB: *const Polygon, xfB: Transform, segmentA: *const Segment, xfA: Transform) Manifold {
+        return @bitCast(native.b2CollideSegmentAndPolygon(@ptrCast(segmentA), @bitCast(xfA), @ptrCast(polygonB), @bitCast(xfB)));
     }
 };
 
@@ -2594,6 +2650,22 @@ pub const Circle = extern struct {
     pub inline fn computeMass(shape: Circle, density: f32) MassData {
         return @bitCast(native.b2ComputeCircleMass(@ptrCast(&shape), density));
     }
+
+    pub inline fn collideCircle(circleA: *const Circle, xfA: Transform, circleB: *const Circle, xfB: Transform) Manifold {
+        return @bitCast(native.b2CollideCircles(@ptrCast(circleA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideCapsule(circleB: *const Circle, xfB: Transform, capsuleA: *const Capsule, xfA: Transform) Manifold {
+        return @bitCast(native.b2CollideCapsuleAndCircle(@ptrCast(capsuleA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collideSegment(circleB: *const Circle, xfB: Transform, segmentA: *const Segment, xfA: Transform) Manifold {
+        return @bitCast(native.b2CollideSegmentAndCircle(@ptrCast(segmentA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
+
+    pub inline fn collidePolygon(circleB: *const Circle, xfB: Transform, polygonA: *const Polygon, xfA: Transform) Manifold {
+        return @bitCast(native.b2CollidePolygonAndCircle(@ptrCast(polygonA), @bitCast(xfA), @ptrCast(circleB), @bitCast(xfB)));
+    }
 };
 
 pub const Filter = extern struct {
@@ -2832,56 +2904,4 @@ pub inline fn computeCosSin(angle: f32) CosSin {
 
 pub inline fn floatIsValid(a: f32) bool {
     return native.b2IsValid(a);
-}
-
-// Collision functions
-
-// TODO: For the collision functions, it will require re-duplicating since the user should be able to to do circle.collideCapsule(capsule) as well as capsule.collideCircle(circle)
-
-pub inline fn collideCircles(circleA: Circle, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
-    return @bitCast(native.b2CollideCircles(@ptrCast(&circleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
-}
-
-pub inline fn collideCapsuleAndCircle(capsuleA: Capsule, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
-    return @bitCast(native.b2CollideCapsuleAndCircle(@ptrCast(&capsuleA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
-}
-
-pub inline fn collideSegmentAndCircle(segmentA: Segment, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
-    return @bitCast(native.b2CollideSegmentAndCircle(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
-}
-
-pub inline fn collidePolygonAndCircle(polygonA: Polygon, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
-    return @bitCast(native.b2CollidePolygonAndCircle(@ptrCast(&polygonA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
-}
-
-pub inline fn collideCapsules(capsuleA: Capsule, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideCapsules(@ptrCast(&capsuleA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-pub inline fn collideSegmentAndCapsule(segmentA: Segment, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideSegmentAndCapsule(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-pub inline fn collidePolygonAndCapsule(polygonA: Polygon, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollidePolygonAndCapsule(@ptrCast(&polygonA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-pub inline fn collidePolygons(polyA: Polygon, xfA: Transform, polyB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollidePolygons(@ptrCast(&polyA), @bitCast(xfA), @ptrCast(&polyB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-pub inline fn collideSegmentAndPolygon(segmentA: Segment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideSegmentAndPolygon(@ptrCast(&segmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-pub inline fn collideChainSegmentAndCircle(chainSegmentA: ChainSegment, xfA: Transform, circleB: Circle, xfB: Transform) Manifold {
-    return @bitCast(native.b2CollideChainSegmentAndCircle(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&circleB), @bitCast(xfB)));
-}
-
-pub inline fn collideChainSegmentAndCapsule(chainSegmentA: ChainSegment, xfA: Transform, capsuleB: Capsule, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideChainSegmentAndCapsule(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&capsuleB), @bitCast(xfB), @ptrCast(cache)));
-}
-
-pub inline fn collideChainSegmentAndPolygon(chainSegmentA: ChainSegment, xfA: Transform, polygonB: Polygon, xfB: Transform, cache: *DistanceCache) Manifold {
-    return @bitCast(native.b2CollideChainSegmentAndPolygon(@ptrCast(&chainSegmentA), @bitCast(xfA), @ptrCast(&polygonB), @bitCast(xfB), @ptrCast(cache)));
 }

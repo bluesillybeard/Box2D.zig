@@ -8,15 +8,15 @@ It's not too hard to @cImport Box2D's headers, but a binding is certainly nice. 
 
 ## How to use
 
-If all you want to do is compile box2d into a static or shared library, simply clone the repository and use `zig build static` or `zig build shared` to make a static or shared library respectively.
+If all you want to do is compile box2d into a static or shared library, simply clone the repository, init the `box2d` git submodule, and use `zig build static` or `zig build shared` to make a static or shared library respectively.
 
-Of course, you're probably here to use Box2D with Zig. I recomend using a git submodule, and doing the following:
+Of course, you're probably here to use Box2D with Zig. Right now, it's a bit of a mess. This is not a fault of Zig, but a fault of this project. We will have proper Zig packages available soon.
 
-In your `build.zig`
-```zig
-const box2d = @import("Box2D.zig/build.zig");
+For now, use a git submodule or equivalent (such as cloning the repo into a subfolder of your project). Make sure the `box2d` submodule in this repository is initialized. Then, add this code to your `build.zig`:
 
-...
+```
+// You can find-replace "Box2D.zig" with the path to the folder with this repository
+const box2d = @import("Box2d.zig/build.zig");
 
 // This calls b.addModule, with the name as "box2d" and uses the binding for the source file
 // It then adds all of Box2Ds source files and the include directory to that module
@@ -24,19 +24,14 @@ const box2dModule = box2d.addModule(b, "Box2D.zig", .{});
 exe.root_module.addImport("box2d", box2dModule);
 ```
 
-This also probably works using Zigs package `build.zig.zon` thing, but that has not been tested yet.
-
 ## Other notes
 
 The binding is under heavy work, but it's nearly there. All that's missing are:
-- move collision functions into shape structs
 - add enforced type safety for userData and context pointers
     - userData type validation will be done at runtime, since it's just an opaque pointer that gets eaten and regurgitated
+    - Not sure the best way to go about this, so leaving it as-is
 - copy documentation over (with minor modifications to fit the binding better)
 - there are a number of TODOs
-- The final goal is that the C headers are only used to validate API/ABI compatibility
-
-I suggest using the native option `@import("box2d").native` for now, however the binding is close enough to ready that it's in a mostly usable state if you are willing to do bits of refactoring as it matures.
 
 ## TODO
 - Compare performance between compiling with cmake+clang and zig (in theory it should be identical, since they are both ultimately LLVM+clang)
@@ -50,9 +45,8 @@ I suggest using the native option `@import("box2d").native` for now, however the
 - port all of the unit tests over (except the ones that test internal Box2D functions)
 - translate the entire samples app
     - Quite a bit of an undertaking, but I think it wouldn't be too hard.
-- there are a lot of TODOs regaurding automatic validation of the binding
 - package this into various places
-    - build.zig.zon
+    - Zig's package manager
 
 ## Update checklist
 When we update the Box2D version, we need to do this set of steps:
