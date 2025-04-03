@@ -2,6 +2,8 @@
 
 Box2D v3 for the Zig programming language. Can also be used to make cross-compiling Box2D easier.
 
+Quick note: waiting for 3.1 for the first proper release - until then, your best bet is to import the C library directly
+
 Tested on zig stable (currently 0.13.0) and master (0.14.0-dev.xyz). See the commit history for which version of zig master was last tested. It also probably works with the Mach nominated version of Zig, however it is not explicitly tested with that.
 
 It's not too hard to @cImport Box2D's headers, but a binding is certainly nice. Plus integrating Cmake projects into Zig can be rather annoying.
